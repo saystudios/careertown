@@ -113,7 +113,7 @@ export function SceneScreen({ sceneId: startScene, onMission }: { sceneId: Scene
         onPointerUp={() => { pan.current = null; }} onPointerLeave={() => { pan.current = null; }}>
         {b.rooms.map((r) => (
           <div key={r.sceneId} ref={(el) => { panels.current[r.sceneId] = el; }} className="room-panel" data-scene={r.sceneId}>
-            <Room sceneId={r.sceneId} townNight={night} onWardrobe={setWardrobe} onCustomTap={(e) => e.ref === 'chalkboard' && setDrawOn(e)}
+            <Room sceneId={r.sceneId} townNight={night} onWardrobe={setWardrobe} onCustomTap={(e) => (e.ref === 'chalkboard' || e.ref === 'easel') && setDrawOn(e)}
               onEdge={onEdge} onCross={multi ? onCross(r.sceneId) : undefined}
               onMovedTo={(to) => { if (b.rooms.some((x) => x.sceneId === to)) { centre(to, true); setCur(to); } }} />
             {multi ? <span className="room-sign">{r.icon} {SCENES[r.sceneId].label}</span> : <><Worker building={b.id} /><Visitors building={b.id} /></>}
@@ -191,7 +191,7 @@ export function SceneScreen({ sceneId: startScene, onMission }: { sceneId: Scene
 
       {wardrobe && <WardrobeSheet characterId={wardrobe} onClose={() => setWardrobe(null)} />}
       {petCloset && <Modal title="Pet closet" onClose={() => setPetCloset(null)}><PetCloset only={petCloset} /></Modal>}
-      {drawOn && <Chalkboard entity={drawOn} sceneId={sceneId} onClose={() => setDrawOn(null)} />}
+      {drawOn && <Chalkboard entity={drawOn} sceneId={(Object.keys(game.scenes) as SceneId[]).find((k) => game.scenes[k]?.some((v) => v.id === drawOn.id)) ?? sceneId} onClose={() => setDrawOn(null)} />}
     </div>
   );
 }
@@ -234,9 +234,10 @@ function CharacterPreview({ id }: { id: string }) {
 function Chalkboard({ entity, sceneId, onClose }: { entity: Entity; sceneId: SceneId; onClose: () => void }) {
   const { dispatch } = useGame();
   const ref = useRef<HTMLCanvasElement>(null);
-  const [color, setColor] = useState('#FFFFFF');
+  const paper = entity.ref === 'easel';
+  const [color, setColor] = useState(paper ? '#2B2350' : '#FFFFFF');
   const drawing = useRef<{ x: number; y: number } | null>(null);
-  const COLORS = ['#FFFFFF', '#FFC93C', '#FF7FB5', '#7FD3F7', '#8BD46E'];
+  const COLORS = paper ? ['#2B2350', '#FF5D8F', '#3D7BFF', '#FFC93C', '#5FB894', '#FF8A3D'] : ['#FFFFFF', '#FFC93C', '#FF7FB5', '#7FD3F7', '#8BD46E'];
 
   useEffect(() => {
     const cv = ref.current!; const g = cv.getContext('2d')!;
@@ -262,8 +263,8 @@ function Chalkboard({ entity, sceneId, onClose }: { entity: Entity; sceneId: Sce
   };
 
   return (
-    <Modal title="Chalkboard" onClose={onClose} wide>
-      <canvas ref={ref} width={808} height={344} style={{ touchAction: 'none' }}
+    <Modal title={paper ? 'Paint a picture' : 'Chalkboard'} onClose={onClose} wide>
+      <canvas ref={ref} width={paper ? 600 : 808} height={paper ? 548 : 344} style={{ touchAction: 'none', ...(paper ? { background: '#fff', maxHeight: '60dvh', width: 'auto', margin: '0 auto', display: 'block' } : {}) }}
         className="w-full rounded-2xl border-[4px] border-ink bg-[#2F5D50] cursor-crosshair"
         onPointerDown={(ev) => { ev.currentTarget.setPointerCapture(ev.pointerId); drawing.current = pos(ev); line(drawing.current, drawing.current); }}
         onPointerMove={(ev) => { if (!drawing.current) return; const p = pos(ev); line(drawing.current, p); drawing.current = p; }}
@@ -273,7 +274,7 @@ function Chalkboard({ entity, sceneId, onClose }: { entity: Entity; sceneId: Sce
         <Btn tone="white" onClick={() => setColor('erase')} className={color === 'erase' ? 'ring-4 ring-berry' : ''}>🧽 Eraser</Btn>
         <Btn tone="white" onClick={() => { const cv = ref.current!; cv.getContext('2d')!.clearRect(0, 0, cv.width, cv.height); }}>Clear</Btn>
         <div className="flex-1" />
-        <Btn tone="mint" onClick={save}>Put it on the board</Btn>
+        <Btn tone="mint" onClick={save}>{paper ? 'Hang it on the easel' : 'Put it on the board'}</Btn>
       </div>
     </Modal>
   );

@@ -484,3 +484,4 @@ body.photo-mode .room-sign { display: none !important; }
   box-shadow: 0 0 0 2px rgba(43,35,80,.35); pointer-events: none; z-index: 60; animation: walkmark .9s ease-out forwards; }
 @keyframes walkmark { from { opacity: 1; transform: translate(-50%, -50%) scale(.4); } to { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } }
 .room-strip .spawn-layer { align-items: end; padding-bottom: 10px; }
+.flicker { animation: glow 1.2s ease-in-out infinite; }

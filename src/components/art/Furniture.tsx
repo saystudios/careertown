@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { INK } from './Character';
+import { ART2 } from './Furniture2';
 
 const S = { stroke: 'rgba(43,35,80,0.42)', strokeWidth: 2.6, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const };
 const s2 = { ...S, strokeWidth: 2 };
@@ -231,7 +232,7 @@ const ART: Record<string, (p: ArtProps) => ReactNode> = {
 };
 
 export function FurnitureArt({ art, ...p }: ArtProps & { art: string }) {
-  const draw = ART[art];
+  const draw = ART[art] ?? ART2[art];
   return (
     <svg viewBox={`0 0 ${p.w} ${p.h}`} width="100%" height="100%" style={{ overflow: 'visible', display: 'block' }} aria-hidden>
       {draw ? draw(p) : <rect x={4} y={4} width={p.w - 8} height={p.h - 8} rx={12} fill="#eee" {...S} />}

@@ -396,7 +396,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
 
   // ── Render helpers ──
   const night = townNight || entities.some((e) => e.ref === 'window' && isOn(e));
-  const lampOn = entities.some((e) => (e.ref === 'lamp' || e.ref === 'lamp-pink') && isOn(e));
+  const lampOn = entities.some((e) => ['lamp', 'lamp-pink', 'starlamp', 'fireplace'].includes(e.ref) && isOn(e));
   const isActive = (e: Entity) =>
     (e.ref === 'stove' && entities.some((v) => getState<string>(v, 'on') === e.id && getState<boolean>(v, 'cooking'))) ||
     (e.ref === 'shower' && entities.some((v) => v.kind === 'character' && getState<string>(v, 'on') === e.id && anims[v.id] === 'shower'));
@@ -536,7 +536,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
         {marks.map((m) => <span key={m.key} className="walk-mark" style={{ left: pct(m.x, ROOM_W), top: pct(m.y, ROOM_H) }} />)}
         {spawnSrc && spawnDef?.tap?.type === 'spawn' && (
           <div className="spawn-layer absolute inset-0 z-[980] bg-ink/25 grid place-items-center" onPointerDown={(ev) => ev.target === ev.currentTarget && closeSpawn()}>
-            <div className="pop-in rounded-[24px] border-[4px] border-ink bg-white shadow-chunky p-3 max-w-[92%]">
+            <div className="pop-in rounded-[24px] border-[4px] border-ink bg-white shadow-chunky p-3 max-w-[92%]" style={{ maxHeight: '88%', overflowY: 'auto' }}>
               <div className="flex items-center justify-between gap-4 mb-2">
                 <div className="font-display font-extrabold text-ink text-lg">{spawnDef.name}: tap to take out</div>
                 <button onClick={closeSpawn} className="w-10 h-10 rounded-full border-[3px] border-ink bg-berry text-white font-display">✕</button>
