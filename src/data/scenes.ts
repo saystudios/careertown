@@ -75,6 +75,14 @@ export const EXTRA_ITEMS: Partial<Record<SceneId, [string, number, number][]>> =
   'bank-hall': [['coindrawer', 210, 705]],
   'kpop-studio': [['propbox', 210, 705]],
 };
+/** New furniture in the places (Oct 2026, also added once to saved games: 'pack:furniture-2'). Back-left, past the room's edge: scroll to find it. */
+export const PLACE_FURNITURE: Partial<Record<SceneId, [string, number, number][]>> = {
+  'kpop-studio': [['piano', -100, 600]], 'tech-lab': [['arcade', -90, 590]], 'cafe-room': [['gumball', -90, 600]],
+  'vet-clinic': [['aquarium', -100, 600]], 'playground-yard': [['ballpit', -100, 600]], 'school-classroom': [['easel', -90, 630]],
+  'trail-woods': [['telescope', -90, 600]], 'shop-floor': [['vanity', -90, 600]], 'hospital-exam': [['giantteddy', -100, 640]],
+  'park-lawn': [['swingchair', -90, 600]], 'bank-hall': [['plantshelf', -100, 300]],
+};
+export const placeFurniture = (id: SceneId): Entity[] => (PLACE_FURNITURE[id] ?? []).map(([ref, x, y]) => ({ id: `${ref}-f${x}`, kind: 'item', ref, x, y }));
 export const PLAY_BOXES = new Set(['beachbag', 'toybin', 'hikepack', 'treatcase', 'shoprack', 'coindrawer', 'propbox', 'gadgetbox']);
 export const extraFor = (id: SceneId): Entity[] => (EXTRA_ITEMS[id] ?? []).map(([ref, x, y]) => ({ id: `${ref}-x${x}`, kind: 'item', ref, x, y }));
 
@@ -84,7 +92,7 @@ const it = (ref: string, x: number, y: number, state?: Record<string, unknown>):
 
 /** Starting furniture for each room. Characters and pets are added by the player. */
 export function initialScene(id: SceneId): Entity[] {
-  return [...baseScene(id), ...extraFor(id)];
+  return [...baseScene(id), ...extraFor(id), ...placeFurniture(id)];
 }
 function baseScene(id: SceneId): Entity[] {
   n = 0;

@@ -1,7 +1,7 @@
 // Tiny synthesized sound effects (WebAudio) — original, no audio files needed.
 export type SfxName =
   | 'pop' | 'tap' | 'coin' | 'success' | 'fail' | 'bang' | 'ring' | 'munch' | 'splash'
-  | 'sparkle' | 'whoosh' | 'click' | 'heartbeat' | 'beep' | 'tick' | 'snore' | 'crack';
+  | 'sparkle' | 'whoosh' | 'click' | 'heartbeat' | 'beep' | 'tick' | 'snore' | 'crack' | 'notes';
 
 let ctx: AudioContext | null = null;
 let enabled = true;
@@ -73,6 +73,7 @@ export function sfx(name: SfxName) {
       case 'ring': for (let i = 0; i < 6; i++) tone(1568, 0.06, 'square', i * 0.07, 0.06); break;
       case 'munch': noise(0.05, 0.12); noise(0.05, 0.12, 0.12); noise(0.05, 0.12, 0.24); break;
       case 'splash': noise(0.4, 0.12); tone(400, 0.3, 'sine', 0, 0.06, 900); break;
+      case 'notes': [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, 'triangle', i * 0.13, 0.12)); break;
       case 'sparkle': [1568, 2093, 2637].forEach((f, i) => tone(f, 0.15, 'sine', i * 0.06, 0.08)); break;
       case 'whoosh': noise(0.3, 0.07); break;
       case 'heartbeat': tone(70, 0.12, 'sine', 0, 0.4); tone(65, 0.12, 'sine', 0.18, 0.35); break;
