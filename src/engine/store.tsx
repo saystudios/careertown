@@ -196,6 +196,7 @@ export type Action =
   | { type: 'TOAST'; text: string }
   | { type: 'OWN'; id: string }
   | { type: 'ADD_CHARACTERS'; characters: CharacterData[]; mark: string }
+  | { type: 'RESTORE_SCENES'; scenes: GameState['scenes'] }
   | { type: 'RESET' };
 
 export const sceneOf = (g: GameState, id: SceneId): Entity[] => g.scenes[id] ?? initialScene(id);
@@ -242,6 +243,7 @@ function reducer(root: Root, a: Action): Root {
     }
     case 'ENSURE_SCENE': return g.scenes[a.scene] ? root : setScene(a.scene, initialScene(a.scene));
     case 'ADD_ENTITY': return setScene(a.scene, [...sceneOf(g, a.scene), a.entity]);
+    case 'RESTORE_SCENES': return { ...root, game: { ...g, scenes: a.scenes } };
     case 'REMOVE_ENTITIES': {
       const ids = new Set(a.ids);
       return setScene(a.scene, sceneOf(g, a.scene)

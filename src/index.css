@@ -131,8 +131,8 @@ button { touch-action: manipulation; }
 @keyframes pop { from { transform: scale(.85) translateY(20px); opacity: 0 } }
 .reward-in { animation: pop .45s cubic-bezier(.3,1.7,.5,1); }
 .star-spin { animation: spin 1.2s ease-out; }
-.toast-in { animation: pop .25s ease-out; }
-.feedback-in, .statement-in { animation: pop .25s ease-out; }
+.toast-in { animation: popx .25s ease-out; }
+.feedback-in, .statement-in { animation: popx .25s ease-out; }
 .confetti { position: absolute; top: -20px; height: 14px; border: 2px solid #2B2350; border-radius: 3px; animation: confetti 1.8s ease-in forwards; }
 @keyframes confetti { to { transform: translateY(110vh) rotate(720deg) } }
 .star-pop { animation: pop .5s cubic-bezier(.3,1.7,.5,1) both; }
@@ -485,3 +485,12 @@ body.photo-mode .room-sign { display: none !important; }
 @keyframes walkmark { from { opacity: 1; transform: translate(-50%, -50%) scale(.4); } to { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } }
 .room-strip .spawn-layer { align-items: end; padding-bottom: 10px; }
 .flicker { animation: glow 1.2s ease-in-out infinite; }
+/* Expression picker (hold a character) */
+.face-pick { position: absolute; left: 50%; top: -14%; transform: translateX(-50%); display: flex; gap: 4px; padding: 5px 7px; background: #fff; border: 3px solid #2B2350; border-radius: 999px; box-shadow: 0 4px 0 #2B2350; z-index: 80; animation: popx .25s ease-out; }
+.face-pick button { width: 38px; height: 38px; border-radius: 50%; font-size: 24px; line-height: 1; display: grid; place-items: center; background: #FFF6D6; border: 2px solid rgba(43,35,80,.25); }
+.face-pick button:active { transform: scale(.9); background: #FFE58A; }
+@media (max-height: 520px) { .face-pick button { width: 32px; height: 32px; font-size: 20px; } }
+.undo-btn { position: fixed; left: 50%; bottom: 52px; transform: translateX(-50%); z-index: 960; background: #FFE58A; border: 3px solid #2B2350; border-radius: 999px; padding: 6px 16px; box-shadow: 0 4px 0 #2B2350; font-family: Grandstander, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: 17px; color: #2B2350; animation: popx .25s ease-out; }
+.undo-btn:active { transform: translateX(-50%) translateY(3px); box-shadow: 0 1px 0 #2B2350; }
+body.photo-mode .undo-btn, body.photo-mode .face-pick { display: none !important; }
+@keyframes popx { from { opacity: 0; transform: translateX(-50%) scale(.8); } }

@@ -28,15 +28,18 @@ interface Drag {
 }
 
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
+const FACES: [Mood, string][] = [['happy', '😊'], ['wow', '😮'], ['silly', '😜'], ['wink', '😉'], ['sad', '😢'], ['grumpy', '😠'], ['normal', '🙂']];
 const GREET = ['Hi there!', 'What should we do?', 'Let’s play!', 'I’m ready!', 'Hehe!', 'Wheee!'];
 
-export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEdge, onCross, onMovedTo }: {
+export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEdge, onCross, onMovedTo, onSnapshot }: {
   /** While dragging: where the finger is (null when let go), so the scrolling house can follow it. */
   onEdge?: (clientX: number | null) => void;
   /** Dropped past the left/right side of this room: move it into the next room. Return true if it moved. */
   onCross?: (e: Entity, dir: -1 | 1, y: number, deps: string[]) => boolean;
   /** Someone went through a door to another room. */
   onMovedTo?: (scene: SceneId) => void;
+  /** About to move or put away something (so it can be undone). */
+  onSnapshot?: () => void;
   /** It's night in town (the map's day/night): rooms get dark and windows show the night sky. */
   townNight?: boolean;
   sceneId: SceneId;
@@ -65,6 +68,8 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
   const [strolling, setStrolling] = useState<Record<string, number>>({});
   const [marks, setMarks] = useState<{ key: string; x: number; y: number }[]>([]);
   const bgTap = useRef<{ x: number; y: number; t: number } | null>(null);
+  const [faceFor, setFaceFor] = useState<string | null>(null);   // character whose expression picker is open
+  const hold = useRef<{ t: number; id: string; fired: boolean } | null>(null);
   const tapLog = useRef<Record<string, number[]>>({});
   const burst = (id: string, emoji: string) => {
     const key = uid('p');
@@ -153,6 +158,8 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
     ev.stopPropagation();
     ev.preventDefault();
     const p = toRoom(ev.clientX, ev.clientY);
+    if (hold.current) window.clearTimeout(hold.current.t);
+    hold.current = e.kind === 'character' ? { id: e.id, fired: false, t: window.setTimeout(() => { if (hold.current && !dragRef.current?.moved) { hold.current.fired = true; setFaceFor(e.id); sfx('pop'); } }, 550) } : null;
     const pos = e.heldBy && byId.get(e.heldBy) ? handPos(byId.get(e.heldBy)!) : { x: e.x, y: e.y };
     setDrag({
       id: e.id, ox: pos.x - p.x, oy: pos.y - p.y, sx: ev.clientX, sy: ev.clientY,
@@ -168,6 +175,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
       const e = byId.get(d.id);
       const fixed = e?.kind === 'item' && ITEMS[e.ref]?.fixed;
       const moved = d.moved || Math.hypot(ev.clientX - d.sx, ev.clientY - d.sy) > 8;
+      if (moved && hold.current && !hold.current.fired) { window.clearTimeout(hold.current.t); hold.current = null; }
       if (fixed) { if (moved !== d.moved) setDrag({ ...d, moved }); return; }
       const p = toRoom(ev.clientX, ev.clientY);
       if (moved) onEdge?.(ev.clientX);
@@ -175,11 +183,14 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
     };
     const up = (ev: PointerEvent) => {
       const d = dragRef.current; setDrag(null); onEdge?.(null);
+      const held = hold.current; if (held) window.clearTimeout(held.t); hold.current = null;
       if (!d) return;
+      if (held?.fired && !d.moved) return;   // long press opened the face picker
       const e = byId.get(d.id); if (!e) return;
       const fixed = e.kind === 'item' && ITEMS[e.ref]?.fixed;
       if (!d.moved) { if (d.wearSlot && e.kind === 'character') takeOff(e, d.wearSlot); else onTap(e, ev.clientX, ev.clientY); return; }
       if (fixed) return;
+      onSnapshot?.();
       const hit = toRoom(ev.clientX, ev.clientY);
       const wr = wrapRef.current?.getBoundingClientRect();
       if (onCross && wr && !overTrash(ev.clientX, ev.clientY) && (ev.clientX < wr.left || ev.clientX > wr.right)) {
@@ -376,7 +387,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
     setStrolling((s) => ({ ...s, [who.id]: ms }));
     window.setTimeout(() => setStrolling((s) => (({ [who.id]: _, ...rest }) => rest)(s)), ms + 60);
     play(who.id, 'walk', ms);
-    patch([{ id: who.id, patch: { x, y, pose: 'stand', state: withState(who, { on: undefined }) } }]);
+    patch([{ id: who.id, patch: { x, y, pose: 'stand', state: withState(who, { on: undefined, walkDir: x < who.x ? -1 : 1 }) } }]);
     sfx('tap');
   };
 
@@ -413,7 +424,8 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
       const c = look.character(e.ref); if (!c) return null;
       const holds = e.holding ? byId.get(e.holding)?.ref : undefined;
       const carried = drag?.id === e.id && drag.moved;
-      const mood: Mood = holderMood ?? (carried ? 'wow' : anim === 'sad' ? 'sad' : anim === 'grumpy' ? 'grumpy' : anim === 'eat' ? 'eat' : anim === 'brush' ? 'brush' : anim === 'tickle' ? 'silly' : anim === 'wave' || anim === 'hugl' || anim === 'hugr' ? 'wink' : anim === 'check' || anim === 'hop' || anim === 'happy' ? 'happy' : holds && ['teddy', 'balloon', 'cupcake', 'ball'].includes(holds) ? 'happy' : 'normal');
+      const set = getState<Mood>(e, 'mood');
+      const mood: Mood = holderMood ?? (carried ? 'wow' : anim === 'sad' ? 'sad' : anim === 'grumpy' ? 'grumpy' : anim === 'eat' ? 'eat' : anim === 'brush' ? 'brush' : anim === 'tickle' ? 'silly' : anim === 'wave' || anim === 'hugl' || anim === 'hugr' ? 'wink' : anim === 'check' || anim === 'hop' || anim === 'happy' ? 'happy' : set ?? (holds && ['teddy', 'balloon', 'cupcake', 'ball'].includes(holds) ? 'happy' : 'normal'));
       const art = <Person c={c} pose={e.pose === 'sleep' ? 'stand' : e.pose} mood={e.pose === 'sleep' ? 'sleep' : mood} bandage={!!getState(e, 'bandage')} />;
       if (e.pose === 'sleep') {
         const st = sizeOf({ ...e, pose: 'stand' }, look);
@@ -425,7 +437,8 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
           </>
         );
       }
-      return <>{art}{anim === 'shower' && <div className="suds absolute inset-x-0 top-0 h-1/3" />}</>;
+      const flip = strolling[e.id] && getState<number>(e, 'walkDir') === -1;
+      return <>{flip ? <div className="w-full h-full" style={{ transform: 'scaleX(-1)' }}>{art}</div> : art}{anim === 'shower' && <div className="suds absolute inset-x-0 top-0 h-1/3" />}</>;
     }
     if (e.kind === 'pet') {
       const p = look.pet(e.ref); if (!p) return null;
@@ -464,7 +477,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
 
   return (
     <div ref={wrapRef} className="room-wrap full relative w-full h-full grid place-items-center overflow-hidden"
-      onPointerDown={(ev) => { bgTap.current = spawnFor || (ev.target as Element).closest?.('button, .entity') ? null : { x: ev.clientX, y: ev.clientY, t: Date.now() }; }}
+      onPointerDown={(ev) => { if (faceFor && !(ev.target as Element).closest?.('.face-pick')) setFaceFor(null); bgTap.current = spawnFor || (ev.target as Element).closest?.('button, .entity') ? null : { x: ev.clientX, y: ev.clientY, t: Date.now() }; }}
       onPointerUp={(ev) => { const b = bgTap.current; bgTap.current = null; if (b && !drag && Math.hypot(ev.clientX - b.x, ev.clientY - b.y) < 10 && Date.now() - b.t < 600) walkTo(ev.clientX, ev.clientY); }}
       onPointerCancel={() => { bgTap.current = null; }}>
       <div className="room room-ext relative pointer-events-none" aria-hidden><RoomBackdrop def={def} extend /></div>
@@ -527,6 +540,16 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
                 );
               })()}
               {bubbles[e.id] && <Bubble key={bubbles[e.id].key} text={bubbles[e.id].text} />}
+              {faceFor === e.id && (
+                <div className="face-pick" onPointerDown={(ev) => ev.stopPropagation()}>
+                  {FACES.map(([m, icon]) => (
+                    <button key={m} aria-label={`Make a ${m} face`} onClick={() => {
+                      patch([{ id: e.id, patch: { state: withState(e, { mood: m === 'normal' ? undefined : m }) } }]);
+                      setFaceFor(null); play(e.id, 'hop', 500); sfx('sparkle');
+                    }}>{icon}</button>
+                  ))}
+                </div>
+              )}
               {bursts.filter((b) => b.id === e.id).map((b, i) => <span key={b.key} className="burst" style={{ ['--bx' as string]: `${(i % 3 - 1) * 26}px` }}>{b.emoji}</span>)}
             </div>,
             seatFront,
