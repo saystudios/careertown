@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { BuildingId, Entity, SceneId } from '../engine/types';
 import { useGame, sceneOf } from '../engine/store';
 import { Room, placeActor } from '../components/Room';
@@ -22,10 +22,60 @@ import { Worker } from '../components/Worker';
 import { Visitors } from '../components/Visitors';
 import { useDayPhase } from '../engine/dayPhase';
 import { PhotoMode } from '../components/PhotoMode';
+import { SCENES } from '../data/scenes';
 
-export function SceneScreen({ sceneId, onScene, onMission }: { sceneId: SceneId; onScene: (s: SceneId) => void; onMission: (id: string) => void }) {
+export function SceneScreen({ sceneId: startScene, onMission }: { sceneId: SceneId; onScene: (s: SceneId) => void; onMission: (id: string) => void }) {
   const { game, dispatch } = useGame();
-  const b = BUILDINGS.find((x) => x.rooms.some((r) => r.sceneId === sceneId))!;
+  const b = BUILDINGS.find((x) => x.rooms.some((r) => r.sceneId === startScene))!;
+  // Toca-style: every room of the building sits side by side; swipe across them. `sceneId` = the room in the middle of the screen.
+  const [sceneId, setCur] = useState<SceneId>(startScene);
+  const multi = b.rooms.length > 1;
+  const strip = useRef<HTMLDivElement>(null);
+  const panels = useRef<Partial<Record<SceneId, HTMLDivElement | null>>>({});
+  const centre = (id: SceneId, smooth = false) => {
+    const p = panels.current[id]; const s = strip.current; if (!p || !s) return;
+    s.scrollTo({ left: p.offsetLeft + p.offsetWidth / 2 - s.clientWidth / 2, behavior: smooth ? 'smooth' : 'auto' });
+  };
+  useLayoutEffect(() => { centre(startScene); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const ticking = useRef(false);
+  const onScroll = () => {
+    if (ticking.current) return; ticking.current = true;
+    requestAnimationFrame(() => {
+      ticking.current = false; const s = strip.current; if (!s) return;
+      const mid = s.scrollLeft + s.clientWidth / 2;
+      let best = sceneId, d = Infinity;
+      for (const r of b.rooms) { const p = panels.current[r.sceneId]; if (!p) continue; const dd = Math.abs(p.offsetLeft + p.offsetWidth / 2 - mid); if (dd < d) { d = dd; best = r.sceneId; } }
+      if (best !== sceneId) setCur(best);
+    });
+  };
+  // dragging something to the screen edge scrolls the house
+  const edge = useRef(0); const edgeLoop = useRef(0);
+  const onEdge = (x: number | null) => {
+    const w = window.innerWidth; const zone = Math.min(90, w * 0.08);
+    edge.current = x === null ? 0 : x < zone ? -1 : x > w - zone ? 1 : 0;
+    if (edge.current && !edgeLoop.current) {
+      const step = () => { if (!edge.current || !strip.current) { edgeLoop.current = 0; return; } strip.current.scrollLeft += edge.current * 14; edgeLoop.current = requestAnimationFrame(step); };
+      edgeLoop.current = requestAnimationFrame(step);
+    }
+  };
+  useEffect(() => () => cancelAnimationFrame(edgeLoop.current), []);
+  // carry people, pets and things into the next room
+  const onCross = (from: SceneId) => (e: Entity, dir: -1 | 1, y: number, deps: string[]) => {
+    const i = b.rooms.findIndex((r) => r.sceneId === from); const to = b.rooms[i + dir]?.sceneId; if (!to) return false;
+    const x = dir > 0 ? 110 : 890;
+    if (e.kind === 'item') {
+      const list = sceneOf(game, from); const moving = [e, ...deps.map((id) => list.find((v) => v.id === id)).filter(Boolean) as Entity[]];
+      dispatch({ type: 'REMOVE_ENTITIES', scene: from, ids: moving.map((v) => v.id) });
+      for (const v of moving) dispatch({ type: 'ADD_ENTITY', scene: to, entity: { ...v, id: uid('it'), heldBy: undefined, x: x + (v.x - e.x), y: v === e ? y : y + (v.y - e.y), state: v.state && { ...v.state, on: undefined } } });
+    } else {
+      dispatch({ type: 'PLACE_ACTOR', to, entity: { ...e, id: uid(e.kind), x, y, pose: 'stand', holding: undefined, state: e.state && { ...e.state, on: undefined } } });
+      if (e.kind === 'character') dispatch({ type: 'SET_ACTIVE', id: e.ref });
+    }
+    centre(to, true); setCur(to);
+    return true;
+  };
+  // mouse: drag the background to pan; mouse wheel scrolls sideways
+  const pan = useRef<{ x: number; left: number } | null>(null);
   const [tray, setTray] = useState<'people' | 'stuff' | null>(null);
   const [wardrobe, setWardrobe] = useState<string | null>(null);
   const [drawOn, setDrawOn] = useState<Entity | null>(null);
@@ -56,13 +106,24 @@ export function SceneScreen({ sceneId, onScene, onMission }: { sceneId: SceneId;
 
   return (
     <div className="scene-screen relative h-full">
-      <div className="absolute inset-0">
-        <Room sceneId={sceneId} townNight={night} onWardrobe={setWardrobe} onCustomTap={(e) => e.ref === 'chalkboard' && setDrawOn(e)} />
+      <div ref={strip} className={`room-strip absolute inset-0 ${multi ? 'multi' : 'single'}`} onScroll={onScroll}
+        onWheel={(ev) => { if (strip.current && Math.abs(ev.deltaY) > Math.abs(ev.deltaX)) strip.current.scrollLeft += ev.deltaY; }}
+        onPointerDown={(ev) => { if (ev.pointerType === 'mouse' && !(ev.target as Element).closest('.entity, button, input') && strip.current) pan.current = { x: ev.clientX, left: strip.current.scrollLeft }; }}
+        onPointerMove={(ev) => { if (pan.current && strip.current) strip.current.scrollLeft = pan.current.left - (ev.clientX - pan.current.x); }}
+        onPointerUp={() => { pan.current = null; }} onPointerLeave={() => { pan.current = null; }}>
+        {b.rooms.map((r) => (
+          <div key={r.sceneId} ref={(el) => { panels.current[r.sceneId] = el; }} className="room-panel" data-scene={r.sceneId}>
+            <Room sceneId={r.sceneId} townNight={night} onWardrobe={setWardrobe} onCustomTap={(e) => e.ref === 'chalkboard' && setDrawOn(e)}
+              onEdge={onEdge} onCross={multi ? onCross(r.sceneId) : undefined}
+              onMovedTo={(to) => { if (b.rooms.some((x) => x.sceneId === to)) { centre(to, true); setCur(to); } }} />
+            {multi ? <span className="room-sign">{r.icon} {SCENES[r.sceneId].label}</span> : <><Worker building={b.id} /><Visitors building={b.id} /></>}
+          </div>
+        ))}
       </div>
 
       <div className="room-tabs absolute inset-x-0 flex items-center gap-2 px-2 sm:px-3 pb-2 overflow-x-auto pointer-events-none [&>*]:pointer-events-auto">
         {b.rooms.length > 1 && b.rooms.map((r) => (
-          <button key={r.sceneId} onClick={() => { sfx('tap'); onScene(r.sceneId); }}
+          <button key={r.sceneId} onClick={() => { sfx('tap'); centre(r.sceneId, true); setCur(r.sceneId); }}
             className={`shrink-0 rounded-2xl border-[3px] border-ink px-3 h-11 font-display font-bold text-ink shadow-chunkysm ${r.sceneId === sceneId ? 'bg-sun' : 'bg-white'}`}>
             <span className="mr-1">{r.icon}</span>{r.label}
           </button>
@@ -125,8 +186,7 @@ export function SceneScreen({ sceneId, onScene, onMission }: { sceneId: SceneId;
         </div>
       )}
 
-      <Worker building={b.id} />
-      <Visitors building={b.id} />
+      {multi && <><Worker building={b.id} /><Visitors building={b.id} /></>}
       {photo && <PhotoMode title={b.rooms.find((r) => r.sceneId === sceneId)?.label ?? b.name} onClose={() => setPhoto(false)} />}
 
       {wardrobe && <WardrobeSheet characterId={wardrobe} onClose={() => setWardrobe(null)} />}

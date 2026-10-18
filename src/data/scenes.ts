@@ -64,9 +64,18 @@ export const EXTRA_ITEMS: Partial<Record<SceneId, [string, number, number][]>> =
   'courthouse-room': [['camera', 480, 690], ['notebook', 120, 690], ['footprints', 600, 695], ['key', 790, 690]],
   'vet-clinic': [['hay', 200, 690], ['tennisball', 470, 700], ['mousetoy', 880, 700]],
   'restaurant-kitchen': [['orderbell', 600, 700], ['pineapple', 560, 690], ['olive', 640, 695], ['onion', 240, 690]],
-  'tech-lab': [['laptop', 430, 690], ['joystick', 690, 695], ['battery', 330, 700]],
+  'tech-lab': [['laptop', 430, 690], ['joystick', 690, 695], ['battery', 330, 700], ['gadgetbox', 210, 705]],
   'engineering-lab': [['magnet', 300, 700], ['screwdriver', 960, 700], ['bolts', 820, 705], ['ladder', 70, 680]],
+  // play boxes (also added once to saved games: 'pack:play-boxes-1')
+  'beach-shore': [['beachbag', 210, 705]],
+  'playground-yard': [['toybin', 210, 705]],
+  'trail-woods': [['hikepack', 210, 705]],
+  'cafe-room': [['treatcase', 210, 705]],
+  'shop-floor': [['shoprack', 210, 705]],
+  'bank-hall': [['coindrawer', 210, 705]],
+  'kpop-studio': [['propbox', 210, 705]],
 };
+export const PLAY_BOXES = new Set(['beachbag', 'toybin', 'hikepack', 'treatcase', 'shoprack', 'coindrawer', 'propbox', 'gadgetbox']);
 export const extraFor = (id: SceneId): Entity[] => (EXTRA_ITEMS[id] ?? []).map(([ref, x, y]) => ({ id: `${ref}-x${x}`, kind: 'item', ref, x, y }));
 
 let n = 0;

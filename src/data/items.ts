@@ -69,6 +69,10 @@ const food = (id: string, name: string, emoji: string, extra: Partial<ItemDef> =
 const prop = (id: string, name: string, emoji: string, tags: ItemTag[], extra: Partial<ItemDef> = {}): ItemDef => ({
   id, name, emoji, w: 70, h: 70, tags: ['small', ...tags], ...extra,
 });
+/** A box you tap to take things out of (only real item ids are kept). */
+const box = (id: string, name: string, emoji: string, items: string[]): ItemDef => ({
+  id, name, emoji, w: 100, h: 100, tags: ['decor'], tap: { type: 'spawn', toggle: false, items },
+});
 
 export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
   ([
@@ -207,13 +211,22 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
     prop('volleyball', 'Beach ball', '🏐', ['toy'], { tap: { type: 'roll', sfx: 'pop' } }),
     prop('bucket', 'Bucket', '🪣', ['tool']),
     prop('sandbucket', 'Sand toys', '🪣', ['toy']),
-    prop('picnic', 'Picnic basket', '🧺', ['tool'], { tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['Sandwiches and juice!'] } }),
+    prop('picnic', 'Picnic basket', '🧺', ['tool'], { tap: { type: 'spawn', toggle: false, items: ['apple', 'banana', 'strawberry', 'grapes', 'cookie', 'juice', 'cheese', 'bread', 'watermelon'] } }),
     prop('flowers', 'Flowers', '🌷', ['decor'], { tap: { type: 'anim', anim: 'shake', sfx: 'sparkle', bubble: ['Smells sweet!'] } }),
     prop('frisbee', 'Flying disc', '🥏', ['toy'], { tap: { type: 'roll', sfx: 'whoosh' } }),
     prop('bird', 'Bird', '🐦', ['toy', 'float'], { tap: { type: 'anim', anim: 'hop', sfx: 'sparkle', bubble: ['Tweet tweet!'] } }),
     prop('fishrod', 'Fishing rod', '🎣', ['tool'], { tap: { type: 'anim', anim: 'shake', sfx: 'splash', bubble: ['Cast the line… wait… a nibble!'] } }),
     { id: 'fish', name: 'Fish', emoji: '🐟', w: 60, h: 60, tags: ['petfood', 'small'], tap: { type: 'anim', anim: 'hop', sfx: 'splash', bubble: ['Blub!'] } },
-    prop('tacklebox', 'Tackle box', '🧰', ['tool']),
+    prop('tacklebox', 'Tackle box', '🧰', ['tool'], { tap: { type: 'spawn', toggle: false, items: ['fish', 'fishrod', 'bucket', 'shell', 'crab', 'duck', 'juice'] } }),
+    // play boxes: tap to pull out lots of things for each place (Oct 2026)
+    box('beachbag', 'Beach bag', '👜', ['shell', 'crab', 'volleyball', 'bucket', 'sandbucket', 'icecream', 'frisbee', 'juice', 'watermelon']),
+    box('toybin', 'Toy bin', '📦', ['ball', 'basketball', 'volleyball', 'tennisball', 'jumprope', 'frisbee', 'kite', 'sandbucket', 'balloon', 'bubbles']),
+    box('hikepack', 'Hiking bag', '🎒', ['compass', 'binoculars', 'trailmap', 'magnifier', 'camera', 'apple', 'juice', 'flowers', 'butterfly']),
+    box('treatcase', 'Treat case', '🧁', ['croissant', 'waffle', 'cake', 'cupcake', 'cookie', 'donut', 'icecream', 'juice', 'cup', 'plate']),
+    box('shoprack', 'Shop shelf', '🛍️', ['dress', 'tshirt', 'handbag', 'sneaker', 'cap', 'shoppingbag', 'coins']),
+    box('coindrawer', 'Coin drawer', '🗃️', ['coins', 'moneybag', 'piggybank', 'key', 'notebook', 'pencil', 'calculator']),
+    box('propbox', 'Prop box', '🎁', ['kp-mic', 'kp-lightstick', 'kp-bottle', 'kp-bunny', 'kp-trophy', 'guitar', 'drum', 'balloon']),
+    box('gadgetbox', 'Gadget box', '🔌', ['keyboard', 'headset', 'floppy', 'laptop', 'joystick', 'battery', 'minibot', 'magnet']),
     prop('basketball', 'Basketball', '🏀', ['toy'], { tap: { type: 'roll', sfx: 'pop' } }),
     prop('jumprope', 'Jump rope', '🪢', ['toy'], { tap: { type: 'anim', anim: 'hop', sfx: 'tick', bubble: ['1, 2, 3, jump!'] } }),
     prop('butterfly', 'Butterfly', '🦋', ['toy', 'float'], { tap: { type: 'anim', anim: 'hop', sfx: 'sparkle', bubble: ['Flutter flutter!'] } }),
@@ -343,3 +356,6 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
 );
 
 export const has = (def: ItemDef | undefined, tag: ItemTag) => !!def && def.tags.includes(tag);
+
+// play boxes may list things defined later in this file: drop any id that doesn't exist
+for (const d of Object.values(ITEMS)) if (d.tap?.type === 'spawn') d.tap.items = d.tap.items.filter((id) => ITEMS[id]);

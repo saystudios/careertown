@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useReducer, useRef, useState, type ReactNode } from 'react';
 import type { CareerId, CharacterData, Entity, GameState, PetData, Reward, SceneId } from './types';
-import { initialScene, extraFor } from '../data/scenes';
+import { initialScene, extraFor, PLAY_BOXES } from '../data/scenes';
 import { BADGES, SECRETS } from '../data/catalog';
 import { MISSIONS } from '../data/missions';
 import { dailyFor, todayKey } from '../data/daily';
@@ -75,6 +75,14 @@ export function addStarterPack(g: GameState): GameState {
       return [k, [...(es ?? []), ...add]];
     }));
     g = { ...g, owned: [...g.owned, 'pack:more-items-1'], scenes: scenes as typeof g.scenes };
+  }
+  // Play boxes in the free-play places (Oct 2026)
+  if (!g.owned.includes('pack:play-boxes-1')) {
+    const scenes = Object.fromEntries(Object.entries(g.scenes).map(([k, es]) => {
+      const add = extraFor(k as SceneId).filter((x) => PLAY_BOXES.has(x.ref) && !(es ?? []).some((e) => e.id === x.id));
+      return [k, [...(es ?? []), ...add]];
+    }));
+    g = { ...g, owned: [...g.owned, 'pack:play-boxes-1'], scenes: scenes as typeof g.scenes };
   }
   if (!g.owned.includes('pack:paper-natalie-1')) {
     g = { ...g, owned: [...g.owned, 'pack:paper-natalie-1'],
