@@ -4,7 +4,8 @@ import type { BuildingId, Entity, SceneId } from '../engine/types';
 import { useGame, sceneOf } from '../engine/store';
 import { Room, placeActor } from '../components/Room';
 import { BUILDINGS } from '../data/buildings';
-import { ITEMS } from '../data/items';
+import { ITEMS, has } from '../data/items';
+import type { GameState } from '../engine/types';
 import { Btn, Face, Modal } from '../ui/kit';
 import { Person, PetPic } from '../components/Person';
 import { ItemIcon } from '../components/ItemIcon';
@@ -74,6 +75,22 @@ export function SceneScreen({ sceneId: startScene, onMission }: { sceneId: Scene
     centre(to, true); setCur(to);
     return true;
   };
+  // Undo: keep the rooms as they were before the last move, for a few seconds
+  const gameRef = useRef(game); gameRef.current = game;
+  const [undo, setUndo] = useState<{ scenes: GameState['scenes']; key: number } | null>(null);
+  const snapshot = () => {
+    const key = Date.now(); setUndo({ scenes: gameRef.current.scenes, key });
+    window.setTimeout(() => setUndo((u) => (u?.key === key ? null : u)), 7000);
+  };
+  const doUndo = () => { if (!undo) return; dispatch({ type: 'RESTORE_SCENES', scenes: undo.scenes }); setUndo(null); sfx('whoosh'); };
+  // Tidy up: put away the toys and food that were taken out in this room
+  const tidy = () => {
+    const loose = sceneOf(game, sceneId).filter((e) => e.kind === 'item' && e.id.startsWith('it-') && (has(ITEMS[e.ref], 'small') || has(ITEMS[e.ref], 'food')));
+    if (!loose.length) { dispatch({ type: 'TOAST', text: '✨ This room is already tidy!' }); sfx('tap'); return; }
+    snapshot();
+    dispatch({ type: 'REMOVE_ENTITIES', scene: sceneId, ids: loose.map((e) => e.id) });
+    dispatch({ type: 'TOAST', text: `🧹 All tidy! Put away ${loose.length} thing${loose.length > 1 ? 's' : ''}.` }); sfx('sparkle');
+  };
   // mouse: drag the background to pan; mouse wheel scrolls sideways
   const pan = useRef<{ x: number; left: number } | null>(null);
   const [tray, setTray] = useState<'people' | 'stuff' | null>(null);
@@ -114,7 +131,7 @@ export function SceneScreen({ sceneId: startScene, onMission }: { sceneId: Scene
         {b.rooms.map((r) => (
           <div key={r.sceneId} ref={(el) => { panels.current[r.sceneId] = el; }} className="room-panel" data-scene={r.sceneId}>
             <Room sceneId={r.sceneId} townNight={night} onWardrobe={setWardrobe} onCustomTap={(e) => (e.ref === 'chalkboard' || e.ref === 'easel') && setDrawOn(e)}
-              onEdge={onEdge} onCross={multi ? onCross(r.sceneId) : undefined}
+              onEdge={onEdge} onCross={multi ? onCross(r.sceneId) : undefined} onSnapshot={snapshot}
               onMovedTo={(to) => { if (b.rooms.some((x) => x.sceneId === to)) { centre(to, true); setCur(to); } }} />
             {multi ? <span className="room-sign">{r.icon} {SCENES[r.sceneId].label}</span> : <><Worker building={b.id} /><Visitors building={b.id} /></>}
           </div>
@@ -138,6 +155,7 @@ export function SceneScreen({ sceneId: startScene, onMission }: { sceneId: Scene
       <div className="scene-actions absolute bottom-2 flex items-center gap-2">
         <Btn tone="sky" onClick={() => setTray(tray === 'people' ? null : 'people')}>🧑‍🤝‍🧑 People{game.pets.length ? ' & pets' : ''}</Btn>
         <Btn tone="white" onClick={() => { setTray(null); setPhoto(true); }} aria-label="Photo mode">📸</Btn>
+        <Btn tone="white" onClick={tidy} aria-label="Tidy up">🧹</Btn>
         {isHome && <Btn tone="mint" onClick={() => setTray(tray === 'stuff' ? null : 'stuff')}>📦 My stuff{stuff.length ? ` (${stuff.length})` : ''}</Btn>}
         <Hint building={b.id} />
       </div>
@@ -187,6 +205,7 @@ export function SceneScreen({ sceneId: startScene, onMission }: { sceneId: Scene
       )}
 
       {multi && <><Worker building={b.id} /><Visitors building={b.id} /></>}
+      {undo && <button className="undo-btn" onClick={doUndo}>↩️ Undo</button>}
       {photo && <PhotoMode title={b.rooms.find((r) => r.sceneId === sceneId)?.label ?? b.name} onClose={() => setPhoto(false)} />}
 
       {wardrobe && <WardrobeSheet characterId={wardrobe} onClose={() => setWardrobe(null)} />}
