@@ -459,3 +459,28 @@ body.photo-mode .hud-float, body.photo-mode .room-tabs, body.photo-mode .scene-a
 .visitor-bubble { position: absolute; left: 70%; bottom: 55%; width: min(320px, 62vw); z-index: 30; }
 .visitor .worker-tag { font-size: 12px; }
 body.photo-mode .visitor-bubble, body.photo-mode .visitor .worker-tag { display: none !important; }
+
+/* Toca-style rooms: the building's rooms side by side, swipe across them */
+.room-strip { --zoom: 1; display: flex; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+.room-strip::-webkit-scrollbar { display: none; }
+@media (max-height: 520px) { .room-strip { --zoom: 1.2; } }
+.room-panel { position: relative; flex: 0 0 auto; height: 100%; }
+.room-panel:first-child { margin-left: auto; }
+.room-panel:last-child { margin-right: auto; }
+.room-strip.multi .room-panel { width: calc(100dvh * var(--zoom) * 10 / 7); }
+.room-strip.single .room-panel { width: max(100vw, calc(100dvh * var(--zoom) * 10 / 7 * 1.45)); }
+.room-strip .room-wrap.full { align-items: end; align-content: end; }
+.room-strip .room-wrap.full > .room { --stage-w: calc(100dvh * var(--zoom) * 10 / 7); max-height: none; }
+.room-panel + .room-panel::before { content: ''; position: absolute; left: -9px; top: 0; bottom: 0; width: 18px; z-index: 905; pointer-events: none;
+  background: linear-gradient(90deg, #E9D7BD, #FFF6E6 45%, #E9D7BD); border-left: 3px solid #2B2350; border-right: 3px solid #2B2350; }
+.room-sign { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 906; pointer-events: none; white-space: nowrap;
+  background: rgba(255,255,255,.85); border: 3px solid #2B2350; border-radius: 999px; padding: 2px 12px;
+  font-family: Grandstander, ui-rounded, system-ui, sans-serif; font-weight: 700; font-size: 14px; color: #2B2350; opacity: .9; }
+body.photo-mode .room-sign { display: none !important; }
+.entity.strolling { transition-property: left, top; transition-timing-function: ease-in-out; }
+.anim-walk { animation: walkbob .32s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes walkbob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-3%) rotate(2deg); } }
+.walk-mark { position: absolute; width: 5%; aspect-ratio: 2 / 1; transform: translate(-50%, -50%); border: 3px solid rgba(255,255,255,.95); border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(43,35,80,.35); pointer-events: none; z-index: 60; animation: walkmark .9s ease-out forwards; }
+@keyframes walkmark { from { opacity: 1; transform: translate(-50%, -50%) scale(.4); } to { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } }
+.room-strip .spawn-layer { align-items: end; padding-bottom: 10px; }

@@ -30,7 +30,13 @@ interface Drag {
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 const GREET = ['Hi there!', 'What should we do?', 'Let’s play!', 'I’m ready!', 'Hehe!', 'Wheee!'];
 
-export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
+export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEdge, onCross, onMovedTo }: {
+  /** While dragging: where the finger is (null when let go), so the scrolling house can follow it. */
+  onEdge?: (clientX: number | null) => void;
+  /** Dropped past the left/right side of this room: move it into the next room. Return true if it moved. */
+  onCross?: (e: Entity, dir: -1 | 1, y: number, deps: string[]) => boolean;
+  /** Someone went through a door to another room. */
+  onMovedTo?: (scene: SceneId) => void;
   /** It's night in town (the map's day/night): rooms get dark and windows show the night sky. */
   townNight?: boolean;
   sceneId: SceneId;
@@ -56,6 +62,9 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
   const [anims, setAnims] = useState<Record<string, string>>({});
   const [spawnFor, setSpawnFor] = useState<string | null>(null);
   const [bursts, setBursts] = useState<{ key: string; id: string; emoji: string }[]>([]);
+  const [strolling, setStrolling] = useState<Record<string, number>>({});
+  const [marks, setMarks] = useState<{ key: string; x: number; y: number }[]>([]);
+  const bgTap = useRef<{ x: number; y: number; t: number } | null>(null);
   const tapLog = useRef<Record<string, number[]>>({});
   const burst = (id: string, emoji: string) => {
     const key = uid('p');
@@ -161,16 +170,23 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
       const moved = d.moved || Math.hypot(ev.clientX - d.sx, ev.clientY - d.sy) > 8;
       if (fixed) { if (moved !== d.moved) setDrag({ ...d, moved }); return; }
       const p = toRoom(ev.clientX, ev.clientY);
+      if (moved) onEdge?.(ev.clientX);
       setDrag({ ...d, moved, x: p.x + d.ox, y: p.y + d.oy, overTrash: overTrash(ev.clientX, ev.clientY) });
     };
     const up = (ev: PointerEvent) => {
-      const d = dragRef.current; setDrag(null);
+      const d = dragRef.current; setDrag(null); onEdge?.(null);
       if (!d) return;
       const e = byId.get(d.id); if (!e) return;
       const fixed = e.kind === 'item' && ITEMS[e.ref]?.fixed;
-      if (!d.moved) { if (d.wearSlot && e.kind === 'character') takeOff(e, d.wearSlot); else onTap(e); return; }
+      if (!d.moved) { if (d.wearSlot && e.kind === 'character') takeOff(e, d.wearSlot); else onTap(e, ev.clientX, ev.clientY); return; }
       if (fixed) return;
       const hit = toRoom(ev.clientX, ev.clientY);
+      const wr = wrapRef.current?.getBoundingClientRect();
+      if (onCross && wr && !overTrash(ev.clientX, ev.clientY) && (ev.clientX < wr.left || ev.clientX > wr.right)) {
+        if (e.heldBy) patch([{ id: e.heldBy, patch: { holding: undefined } }]);
+        const deps = e.kind === 'item' ? [...dependentsOf(e.id, entities)].filter((id) => byId.get(id)?.kind === 'item') : [];
+        if (onCross({ ...e, heldBy: undefined }, ev.clientX < wr.left ? -1 : 1, Math.min(695, Math.max(def.horizon + 60, d.y)), deps)) { sfx('whoosh'); return; }
+      }
       onDrop(e, hit.x, hit.y, d.x, d.y, overTrash(ev.clientX, ev.clientY));
     };
     window.addEventListener('pointermove', move);
@@ -222,6 +238,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
     if (fx.remove.length) dispatch({ type: 'REMOVE_ENTITIES', scene: sceneId, ids: fx.remove });
     if (fx.moveTo) {
       dispatch({ type: 'PLACE_ACTOR', to: fx.moveTo.scene, entity: fx.moveTo.entity });
+      onMovedTo?.(fx.moveTo.scene);
       const who = e.kind === 'character' ? look.character(e.ref)?.name : look.pet(e.ref)?.name;
       dispatch({ type: 'TOAST', text: `${who ?? 'They'} went to the ${SCENES[fx.moveTo.scene].label.toLowerCase()}` });
     }
@@ -252,7 +269,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
     say(e.id, ['Off it comes!', 'Taking it off!', 'There you go!'][Math.floor(Math.random() * 3)]); sfx('pop');
   };
 
-  const onTap = (e: Entity) => {
+  const onTap = (e: Entity, cx?: number, cy?: number) => {
     if (e.kind === 'character') {
       dispatch({ type: 'SET_ACTIVE', id: e.ref });
       if (e.holding) {
@@ -287,7 +304,8 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
       return;
     }
     const d = ITEMS[e.ref]; const t = d?.tap;
-    if (!t) { play(e.id, 'hop', 500); say(e.id, d?.name ?? ''); sfx('tap'); return; }
+    if (!t && has(d, 'floor') && cx !== undefined && cy !== undefined) { walkTo(cx, cy); return; }   // rugs and mats are floor: walk there
+    if (!t) { react(e); return; }
     switch (t.type) {
       case 'toggle': patch([{ id: e.id, patch: { state: withState(e, { lit: !isOn(e), ...(getState(e, 'on') === true || getState(e, 'on') === false ? { on: undefined } : {}) }) } }]); sfx(t.sfx ?? 'click'); break;
       case 'spawn': if (t.toggle) patch([{ id: e.id, patch: { state: withState(e, { on: true }) } }]); setSpawnFor(e.id); sfx('pop'); break;
@@ -330,6 +348,36 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
         break;
       }
     }
+  };
+
+  /** Things with no special tap still do something fun. */
+  const react = (e: Entity) => {
+    const d = ITEMS[e.ref];
+    const food = has(d, 'food');
+    const r = Math.random();
+    if (food) { play(e.id, 'hop', 600); burst(e.id, ['😋', '✨', '💛'][Math.floor(r * 3)]); say(e.id, [`Yummy ${d.name.toLowerCase()}!`, 'Feed me to someone!', 'Mmm!'][Math.floor(r * 3)]); sfx('pop'); return; }
+    if (d?.emoji) { play(e.id, r < 0.5 ? 'spin' : 'hop', 800); burst(e.id, ['✨', '⭐', '🎵', '💫'][Math.floor(r * 4)]); say(e.id, d.name); sfx(r < 0.5 ? 'sparkle' : 'pop'); return; }
+    play(e.id, 'hop', 500); say(e.id, d?.name ?? ''); sfx('tap');
+  };
+
+  /** Tap the floor: the active character walks there (Toca style). */
+  const walkTo = (cx: number, cy: number) => {
+    const p = toRoom(cx, cy);
+    const [xMin, xMax] = playBounds();
+    const x = Math.max(xMin, Math.min(xMax, p.x));
+    const y = Math.max(def.horizon + 60, Math.min(695, p.y));
+    const key = uid('m'); setMarks((m) => [...m, { key, x, y }]);
+    window.setTimeout(() => setMarks((m) => m.filter((v) => v.key !== key)), 900);
+    const people = entities.filter((v) => v.kind === 'character' && v.pose !== 'sleep' && !v.heldBy);
+    const who = people.find((v) => v.ref === game.activeCharacterId) ?? people[0];
+    if (!who) { sfx('tap'); return; }
+    const dist = Math.hypot(x - who.x, y - who.y); if (dist < 12) return;
+    const ms = Math.min(1800, 500 + dist * 1.6);
+    setStrolling((s) => ({ ...s, [who.id]: ms }));
+    window.setTimeout(() => setStrolling((s) => (({ [who.id]: _, ...rest }) => rest)(s)), ms + 60);
+    play(who.id, 'walk', ms);
+    patch([{ id: who.id, patch: { x, y, pose: 'stand', state: withState(who, { on: undefined }) } }]);
+    sfx('tap');
   };
 
   const closeSpawn = () => {
@@ -415,9 +463,12 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
   const spawnDef = spawnSrc && ITEMS[spawnSrc.ref];
 
   return (
-    <div ref={wrapRef} className="room-wrap full relative w-full h-full grid place-items-center overflow-hidden">
+    <div ref={wrapRef} className="room-wrap full relative w-full h-full grid place-items-center overflow-hidden"
+      onPointerDown={(ev) => { bgTap.current = spawnFor || (ev.target as Element).closest?.('button, .entity') ? null : { x: ev.clientX, y: ev.clientY, t: Date.now() }; }}
+      onPointerUp={(ev) => { const b = bgTap.current; bgTap.current = null; if (b && !drag && Math.hypot(ev.clientX - b.x, ev.clientY - b.y) < 10 && Date.now() - b.t < 600) walkTo(ev.clientX, ev.clientY); }}
+      onPointerCancel={() => { bgTap.current = null; }}>
       <div className="room room-ext relative pointer-events-none" aria-hidden><RoomBackdrop def={def} extend /></div>
-      <div ref={roomRef} className="room relative select-none" style={{ touchAction: 'none' }}>
+      <div ref={roomRef} className="room relative select-none" style={{ touchAction: onEdge ? 'pan-x' : 'none' }}>
         <RoomBackdrop def={def} />
         {/* night in town: the painted window shows the night sky (even in rooms saved without a window item) */}
         {townNight && def.anchors?.window?.box && !entities.some((e) => e.ref === 'window') && (() => { const b = def.anchors!.window!.box!; return (
@@ -456,8 +507,8 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
           return [
             <div
               key={e.id}
-              className={`entity absolute ${dragging ? 'dragging' : ''} ${e.kind === 'pet' && !dragging ? 'walking' : ''} ${fixed ? 'fixed-item' : 'movable'}`}
-              style={{ left: pct(x - s.w / 2, ROOM_W), top: pct(y - s.h, ROOM_H), width: pct(s.w, ROOM_W), height: pct(s.h, ROOM_H), fontSize: isEmoji ? `${(s.h / ROOM_H) * 100 * 0.8}cqh` : undefined, zIndex: dragging ? 999 : undefined }}
+              className={`entity absolute ${dragging ? 'dragging' : ''} ${e.kind === 'pet' && !dragging ? 'walking' : ''} ${strolling[e.id] && !dragging ? 'strolling' : ''} ${fixed ? 'fixed-item' : 'movable'}`}
+              style={{ transitionDuration: strolling[e.id] && !dragging ? `${strolling[e.id]}ms` : undefined, left: pct(x - s.w / 2, ROOM_W), top: pct(y - s.h, ROOM_H), width: pct(s.w, ROOM_W), height: pct(s.h, ROOM_H), fontSize: isEmoji ? `${(s.h / ROOM_H) * 100 * 0.8}cqh` : undefined, zIndex: dragging ? 999 : undefined }}
               onPointerDown={(ev) => onDown(e, ev)}
               aria-label={e.kind === 'item' ? ITEMS[e.ref]?.name : e.kind === 'pet' ? look.pet(e.ref)?.name : look.character(e.ref)?.name}
             >
@@ -482,8 +533,9 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
           ];
         })}
 
+        {marks.map((m) => <span key={m.key} className="walk-mark" style={{ left: pct(m.x, ROOM_W), top: pct(m.y, ROOM_H) }} />)}
         {spawnSrc && spawnDef?.tap?.type === 'spawn' && (
-          <div className="absolute inset-0 z-[980] bg-ink/25 grid place-items-center" onPointerDown={(ev) => ev.target === ev.currentTarget && closeSpawn()}>
+          <div className="spawn-layer absolute inset-0 z-[980] bg-ink/25 grid place-items-center" onPointerDown={(ev) => ev.target === ev.currentTarget && closeSpawn()}>
             <div className="pop-in rounded-[24px] border-[4px] border-ink bg-white shadow-chunky p-3 max-w-[92%]">
               <div className="flex items-center justify-between gap-4 mb-2">
                 <div className="font-display font-extrabold text-ink text-lg">{spawnDef.name}: tap to take out</div>
@@ -500,7 +552,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false }: {
           </div>
         )}
       </div>
-      <div ref={trashRef} className={`trash absolute rounded-2xl border-[3px] border-ink px-3 py-2 font-display font-bold text-ink transition-all ${drag?.moved ? 'opacity-100' : 'opacity-0 pointer-events-none'} ${drag?.overTrash ? 'bg-berry text-white scale-110' : 'bg-white'}`} style={{ zIndex: 950, right: 'max(12px, env(safe-area-inset-right, 0px))', bottom: 12 }}>
+      <div ref={trashRef} className={`trash fixed rounded-2xl border-[3px] border-ink px-3 py-2 font-display font-bold text-ink transition-all ${drag?.moved ? 'opacity-100' : 'opacity-0 pointer-events-none'} ${drag?.overTrash ? 'bg-berry text-white scale-110' : 'bg-white'}`} style={{ zIndex: 950, right: 'max(12px, env(safe-area-inset-right, 0px))', bottom: 12 }}>
         {drag && byId.get(drag.id)?.kind !== 'item' ? '👋 Leave room' : '📦 Put away'}
       </div>
       {night && <div className="pointer-events-none absolute inset-0 transition-colors duration-700" style={{ background: lampOn ? `rgba(43,35,80,${townNight ? 0.3 : 0.18})` : `rgba(30,28,80,${townNight ? 0.5 : 0.42})`, zIndex: 900 }} />}
