@@ -93,6 +93,17 @@ def save(img, name):
 
 base_img = {b: load(os.path.join(SRC, 'bases', b + '.png')) for b in BASES}
 heads = {b: head_box(base_img[b]) for b in BASES}
+
+def soften_neck(img, neck):
+    """The adult source has a bright orange band under the chin, too saturated to count as skin, so it stayed
+    orange on every skin tone and looked like a choker. Paint it as a soft skin shadow so it recolours."""
+    import numpy as np
+    a = np.asarray(img).astype(np.float32); h, s, v = _hsv(a[..., :3])
+    m = (v > 0.45) & (s >= 0.6) & (s < 0.8) & (h > 0.02) & (h < 0.12) & (a[..., 3] > 128)
+    m[:neck - 6] = False; m[neck + 44:] = False
+    a[..., :3] = np.where(m[..., None], np.array(SKIN_REF, np.float32) * 0.88, a[..., :3])
+    return Image.fromarray(a.round().astype(np.uint8), 'RGBA')
+base_img['adult'] = soften_neck(base_img['adult'], heads['adult'][1])
 place = lambda bb, t: [round(bb[0] * t[0] + t[1]), round(bb[1] * t[0] + t[2]), round((bb[2] - bb[0]) * t[0]), round((bb[3] - bb[1]) * t[0])]
 ident = (1.0, 0.0, 0.0)
 
@@ -243,6 +254,9 @@ ADULT_FIT = {
     'blue-jeans': dict(w=335, top=845, bottom=1450), 'black-shoes': {}, 'white-clogs': {},
     'dad-navy-hoodie': dict(w=560, top=440), 'dad-blue-jeans': dict(w=335, top=845, bottom=1450), 'dad-brown-loafers': {},
 }
+# Hand-placed tops land low (their hands match the body's hands), leaving a long bare neck above the collar.
+# Lift the collar to the body's neckline and keep the hem and hands where they were.
+ADULT_COLLAR = {'mom-pink-sweater': 478, 'mom-striped-sweater': 478, 'mom-pink-cardigan': 478, 'mom-blue-bow-blouse': 457}
 SKIN = {'mom-pink-sweater', 'mom-striped-sweater', 'mom-pink-cardigan', 'mom-blue-bow-blouse', 'mom-pink-flats'}
 def hands_of(img):
     import numpy as np
@@ -261,6 +275,7 @@ for p in sorted(glob.glob(os.path.join(SRC, 'adult-clothes', '*.png'))):
         h = hands_of(load(p)); k = (ADULT_HANDS[1][0] - ADULT_HANDS[0][0]) / (h[1][0] - h[0][0])
         ox = 512 - (h[0][0] + h[1][0]) / 2 * k; oy = ADULT_HANDS[0][1] - (h[0][1] + h[1][1]) / 2 * k
         kb = [bb[0] * k + ox, bb[1] * k + oy, (bb[2] - bb[0]) * k, (bb[3] - bb[1]) * k]
+        if cid in ADULT_COLLAR: kb = [kb[0], ADULT_COLLAR[cid], kb[2], kb[1] + kb[3] - ADULT_COLLAR[cid]]
     else:
         kb = fit_box(bb, t['w'], 512, top=t['top'], bottom=t.get('bottom'))
     c = {'kind': kind, 'base': 'adult', 'src': save(img, f'cloth-{cid}'), 'at': [round(v) for v in kb]}
