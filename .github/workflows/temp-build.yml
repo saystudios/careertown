@@ -1,0 +1,41 @@
+name: Temp build
+on:
+  push:
+    branches: [tmp-build-all-careers]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm install --no-audit --no-fund
+      - run: npx tsc --noEmit > typecheck.txt 2>&1 || true
+      - run: npm run build
+      - name: Inline the script and styles like the published page
+        run: |
+          node -e '
+          const fs=require("fs"); let h=fs.readFileSync("dist/index.html","utf8");
+          for (const f of fs.readdirSync("dist/assets")) {
+            const p="dist/assets/"+f;
+            if (/^index-.*\.css$/.test(f)) { h=h.replace(new RegExp("<link[^>]*"+f.replace(/\./g,"\\.")+"[^>]*>"), ()=>"<style>"+fs.readFileSync(p,"utf8")+"</style>"); fs.unlinkSync(p); }
+            if (/^index-.*\.js$/.test(f)) { const js=fs.readFileSync(p,"utf8").replace(/<\/script/g,"<\\/script"); h=h.replace(new RegExp("<script[^>]*"+f.replace(/\./g,"\\.")+"[^>]*></script>"), ()=>"<script type=\"module\">"+js+"</script>"); fs.unlinkSync(p); }
+          }
+          if (/assets\/index-/.test(h)) { console.error("not inlined"); process.exit(1); }
+          fs.writeFileSync("dist/index.html",h);'
+      - uses: actions/checkout@v4
+        with: { ref: neck-fix, path: pub }
+      - name: Commit the built game to all-careers
+        run: |
+          rm -rf pub/assets && cp -r dist/assets pub/assets && cp dist/index.html pub/index.html
+          cd pub && git checkout -b all-careers
+          git config user.name "Say Studios LLC" && git config user.email "SayStudiosllc@yahoo.com"
+          git add -A && git commit -m "Teacher for a Day: a mission for the School
+
+          Every career now has free play and a mission. Built from source-all-careers." && git push -f origin all-careers
+      - name: Save typecheck output
+        run: |
+          git config user.name "Say Studios LLC" && git config user.email "SayStudiosllc@yahoo.com"
+          git add -f typecheck.txt && git commit -m "typecheck output" && git push origin HEAD:tmp-build-all-careers
