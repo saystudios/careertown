@@ -33,6 +33,7 @@ import { FishingMission } from './missions/FishingMission';
 import { PlaygroundMission } from './missions/PlaygroundMission';
 import { TrailMission } from './missions/TrailMission';
 import { UpstanderMission } from './missions/UpstanderMission';
+import { TeacherMission } from './missions/TeacherMission';
 import { Person } from './components/Person';
 import { SPRITES } from './data/sprites';
 import { sfx } from './engine/sfx';
@@ -55,6 +56,7 @@ const MISSION_VIEWS: Record<string, (p: { onExit: () => void }) => ReactElement>
   'playground-coach': PlaygroundMission,
   'trail-ranger': TrailMission,
   'playground-upstander': UpstanderMission,
+  'teacher-day': TeacherMission,
 };
 
 function Game() {
