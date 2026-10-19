@@ -12,6 +12,14 @@ export interface MissionDef {
 }
 
 export const MISSIONS: Record<string, MissionDef> = {
+  'teacher-day': {
+    id: 'teacher-day', career: 'teacher', building: 'school',
+    title: 'Teacher for a Day',
+    pitch: 'Ms. Park needs a helper! Plan the lesson, help each student in a kind way, then check the homework.',
+    minutes: 5,
+    reward: { coins: 55, xp: 75, career: 'teacher', careerXp: 120, badge: 'star-teacher', title: 'What a great class!' },
+    repeatReward: { coins: 15, xp: 20, career: 'teacher', careerXp: 40, title: 'Another great lesson!' },
+  },
   'playground-upstander': {
     id: 'playground-upstander', career: 'coach', building: 'playground',
     title: 'Be an Upstander',

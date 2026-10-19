@@ -13,7 +13,7 @@ export const WORKERS: Partial<Record<BuildingId, Worker>> = {
       'Good morning, class! I’m Ms. Park, the teacher.',
       'Teachers plan lessons, read stories, and help every student learn in their own way.',
       'My favourite part? When someone says “Oh, now I get it!”',
-      'Try it: seat kids at the desks, then tap the chalkboard to draw a lesson.',
+      'Try it: seat kids at the desks, tap the chalkboard to draw, or be Teacher for a Day.',
     ],
   },
   hospital: {

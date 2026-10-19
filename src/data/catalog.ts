@@ -120,6 +120,7 @@ export const BADGES: Record<string, { label: string; icon: string; desc: string 
   'shop-star': { label: 'Shop Star', icon: '🛍️', desc: 'Ran Nia’s shop for a day' },
   'rising-star': { label: 'Rising Star', icon: '🌟', desc: 'Trained and performed at the K-pop Academy' },
   'pizza-chef': { label: 'Pizza Chef', icon: '🍕', desc: 'Served the pizza party at Café Sunny' },
+  'star-teacher': { label: 'Star Teacher', icon: '🍎', desc: 'Planned, taught and checked homework with Ms. Park' },
 };
 
 // ── Secrets ─────────────────────────────────────────────

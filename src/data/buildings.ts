@@ -22,7 +22,7 @@ export const BUILDINGS: BuildingDef[] = [
       { sceneId: 'home-bathroom', label: 'Bathroom', icon: '🛁' },
     ], missions: [] },
   { id: 'school', name: 'School', icon: '🏫', career: 'teacher', playable: true, x: 325, y: 280, w: 200, wall: '#FFB27A', roof: '#C9473A', shape: 'civic',
-    rooms: [{ sceneId: 'school-classroom', label: 'Classroom', icon: '🍎' }], missions: [] },
+    rooms: [{ sceneId: 'school-classroom', label: 'Classroom', icon: '🍎' }], missions: ['teacher-day'] },
   { id: 'hospital', name: 'Hospital', icon: '🏥', career: 'doctor', playable: true, x: 540, y: 280, w: 185, wall: '#FFFFFF', roof: '#FF5D8F', shape: 'tower',
     rooms: [{ sceneId: 'hospital-exam', label: 'Exam room', icon: '🩺' }], missions: ['doctor-checkup'] },
   { id: 'courthouse', name: 'Courthouse', icon: '⚖️', career: 'lawyer', playable: true, x: 750, y: 280, w: 190, wall: '#E8E4FF', roof: '#A98BFF', shape: 'civic',
