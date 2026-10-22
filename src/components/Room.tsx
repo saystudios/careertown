@@ -465,7 +465,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
         <div className="w-full h-full relative">
           {(e.ref === 'lamp' || e.ref === 'lamp-pink') && on && <div className="lamp-glow absolute pointer-events-none" />}
           <img src={d.paint} alt="" draggable={false} className="sprite-img" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }} />
-          {e.ref === 'tv' && on && <div className="tv-screen absolute" style={{ left: '12.5%', top: '1.5%', width: '75.5%', height: '56%' }} />}
+          {e.ref === 'tv' && on && <div className="tv-screen absolute" style={{ left: '13.5%', top: '3.5%', width: '73%', height: '47%' }} />}
         </div>
       );
     }

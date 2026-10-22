@@ -27,6 +27,12 @@ import pBathShelf from '../assets/furniture/bath-shelf.webp';
 import pBathCart from '../assets/furniture/bath-cart.webp';
 import pTrash from '../assets/furniture/trash-can.webp';
 import pStool from '../assets/furniture/step-stool.webp';
+import pFridge from '../assets/furniture/fridge.webp';
+import pStove from '../assets/furniture/stove.webp';
+import pCounter from '../assets/furniture/kitchen-counter.webp';
+import pCupboard from '../assets/furniture/wall-cupboard.webp';
+import pTable from '../assets/furniture/table.webp';
+import pChair from '../assets/furniture/chair.webp';
 
 // Tags drive the interaction engine (engine/interactions.ts).
 export type ItemTag =
@@ -300,34 +306,34 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
     { id: 'block-roof', name: 'Roof block', art: 'roofblock', w: 90, h: 60, tags: ['block', 'small'] },
 
     // ── Furniture: home ───────────────────────────────
-    { id: 'fridge', name: 'Fridge', art: 'fridge', w: 165, h: 310, tags: [],
+    { id: 'fridge', name: 'Fridge', art: 'fridge', paint: pFridge, w: 179, h: 300, tags: [],
       tap: { type: 'spawn', toggle: true, items: ['apple', 'banana', 'strawberry', 'grapes', 'watermelon', 'egg', 'milk', 'cheese', 'bread', 'carrot', 'potato', 'corn', 'batter', 'broccoli', 'onion', 'pineapple', 'olive', 'cupcake', 'donut', 'icecream', 'juice', 'petfood', 'sushi', 'taco', 'burger', 'hotdog', 'ramen', 'dumpling', 'onigiri', 'pretzel', 'peach', 'cherries', 'avocado', 'kiwi', 'blueberries', 'mango', 'chocolate'] } },
-    { id: 'stove', name: 'Stove', art: 'stove', w: 160, h: 175, tags: ['stove'] },
-    { id: 'counter', name: 'Sink', art: 'kitchensink', w: 190, h: 175, tags: ['sink', 'table'] },
-    { id: 'cupboard', name: 'Cupboard', art: 'cupboard', w: 230, h: 110, tags: ['wall'],
+    { id: 'stove', name: 'Stove', art: 'stove', paint: pStove, w: 157, h: 175, tags: ['stove'] },
+    { id: 'counter', name: 'Sink', art: 'kitchensink', paint: pCounter, w: 239, h: 150, tags: ['sink', 'table'] },
+    { id: 'cupboard', name: 'Cupboard', art: 'cupboard', paint: pCupboard, w: 220, h: 137, tags: ['wall'],
       tap: { type: 'spawn', toggle: true, items: ['plate', 'cup', 'spoon', 'kettle', 'salt', 'cupcake'] } },
-    { id: 'table', name: 'Table', art: 'table', w: 280, h: 125, tags: ['table'] },
-    { id: 'chair', name: 'Chair', art: 'chair', w: 90, h: 150, tags: ['seat'], seatLift: 62, tap: { type: 'anim', anim: 'spin', sfx: 'whoosh' } },
-    { id: 'bed', name: 'Bed', art: 'bed', paint: pBed, w: 300, h: 263, tags: ['bed'], tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['So fluffy!', 'Boing boing!'] } },
-    { id: 'closet', name: 'Closet', art: 'closet', paint: pCloset, w: 262, h: 250, tags: [], tap: { type: 'wardrobe' } },
-    { id: 'toybox', name: 'Toy box', art: 'toybox', paint: pToybox, w: 170, h: 140, tags: [],
+    { id: 'table', name: 'Table', art: 'table', paint: pTable, w: 230, h: 176, tags: ['table'] },
+    { id: 'chair', name: 'Chair', art: 'chair', paint: pChair, w: 98, h: 150, tags: ['seat'], seatLift: 66, tap: { type: 'anim', anim: 'spin', sfx: 'whoosh' } },
+    { id: 'bed', name: 'Bed', art: 'bed', paint: pBed, w: 300, h: 296, tags: ['bed'], tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['So fluffy!', 'Boing boing!'] } },
+    { id: 'closet', name: 'Closet', art: 'closet', paint: pCloset, w: 185, h: 262, tags: [], tap: { type: 'wardrobe' } },
+    { id: 'toybox', name: 'Toy box', art: 'toybox', paint: pToybox, w: 165, h: 154, tags: [],
       tap: { type: 'spawn', toggle: true, items: ['teddy', 'train', 'balloon', 'drum', 'dino', 'unicorn', 'rocket', 'kite', 'puzzle', 'guitar', ...TOY_IDS, 'paints', 'book', 'yarn', 'yoyo', 'pinata', 'nestingdoll', 'wand', 'crystalball', 'dice', 'skateboard', 'scooter', 'trumpet', 'violin', 'sax', 'accordion', 'maracas', 'bowling', 'flashlight', 'gift', 'confetti', 'snowman'] } },
-    { id: 'lamp', name: 'Lamp', art: 'lamp', paint: pLamp, w: 92, h: 200, tags: ['decor'], tap: { type: 'toggle', sfx: 'click' } },
-    { id: 'tv', name: 'TV', art: 'tv', paint: pTv, w: 240, h: 160, tags: [], tap: { type: 'toggle', sfx: 'click' } },
+    { id: 'lamp', name: 'Lamp', art: 'lamp', paint: pLamp, w: 108, h: 235, tags: ['decor'], tap: { type: 'toggle', sfx: 'click' } },
+    { id: 'tv', name: 'TV', art: 'tv', paint: pTv, w: 255, h: 182, tags: [], tap: { type: 'toggle', sfx: 'click' } },
     { id: 'window', name: 'Window', art: 'window', w: 200, h: 165, fixed: true, tags: [], tap: { type: 'toggle', sfx: 'whoosh' } },
-    { id: 'rug', name: 'Rug', art: 'rug', paint: pRug, w: 300, h: 108, tags: ['floor'] },
-    { id: 'couch', name: 'Couch', art: 'couch', paint: pCouch, w: 380, h: 144, tags: ['seat'], seatLift: 66, tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['Comfy!', 'Pillow fort time?'] } },
-    { id: 'armchair', name: 'Armchair', art: 'couch', paint: pArmchair, w: 170, h: 146, tags: ['seat'], seatLift: 64, tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['So soft!', 'My reading chair!'] } },
-    { id: 'bookshelf', name: 'Bookshelf', art: 'bookshelf', paint: pBookshelf, w: 150, h: 280, tags: [],
+    { id: 'rug', name: 'Rug', art: 'rug', paint: pRug, w: 300, h: 130, tags: ['floor'] },
+    { id: 'couch', name: 'Couch', art: 'couch', paint: pCouch, w: 380, h: 176, tags: ['seat'], seatLift: 79, tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['Comfy!', 'Pillow fort time?'] } },
+    { id: 'armchair', name: 'Armchair', art: 'couch', paint: pArmchair, w: 150, h: 158, tags: ['seat'], seatLift: 70, tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['So soft!', 'My reading chair!'] } },
+    { id: 'bookshelf', name: 'Bookshelf', art: 'bookshelf', paint: pBookshelf, w: 140, h: 285, tags: [],
       tap: { type: 'spawn', toggle: false, items: ['book', 'books', 'puzzle', 'gamepad', 'paints', 'clock'] } },
-    { id: 'shower', name: 'Bath & shower', art: 'shower', paint: pBathtub, w: 286, h: 243, front: 0.62, tags: ['shower'] },
-    { id: 'toilet', name: 'Toilet', art: 'toilet', paint: pToiletW, w: 94, h: 160, tags: ['seat'], seatLift: 76 },
-    { id: 'bathsink', name: 'Bathroom sink', art: 'bathsink', paint: pBathSink, w: 211, h: 112, tags: ['sink'],
+    { id: 'shower', name: 'Bath & shower', art: 'shower', paint: pBathtub, w: 290, h: 267, front: 0.6, tags: ['shower'] },
+    { id: 'toilet', name: 'Toilet', art: 'toilet', paint: pToiletW, w: 106, h: 160, tags: ['seat'], seatLift: 76 },
+    { id: 'bathsink', name: 'Bathroom sink', art: 'bathsink', paint: pBathSink, w: 173, h: 190, tags: ['sink'],
       tap: { type: 'spawn', toggle: false, items: ['toothbrush', 'soap', 'shampoo', 'sponge', 'bubbles', 'duck'] } },
-    { id: 'mirror', name: 'Mirror', art: 'mirror', paint: pBathMirror, w: 211, h: 133, tags: ['wall'], tap: { type: 'anim', anim: 'shine', sfx: 'sparkle', bubble: ['Looking great!', 'Who is that? It\'s you!'] } },
+    { id: 'mirror', name: 'Mirror', art: 'mirror', paint: pBathMirror, w: 117, h: 165, tags: ['wall'], tap: { type: 'anim', anim: 'shine', sfx: 'sparkle', bubble: ['Looking great!', 'Who is that? It\'s you!'] } },
     { id: 'door-white', name: 'Door', art: 'door', paint: pDoorWhite, w: 164, h: 275, fixed: true, tags: ['door'] },
-    { id: 'bathmat', name: 'Bath mat', art: 'rug', paint: pBathmat, w: 200, h: 102, tags: ['floor'] },
-    { id: 'towel-rack', name: 'Towel rack', art: 'mirror', paint: pTowel, w: 101, h: 68, tags: ['decor'], tap: { type: 'anim', anim: 'shake', sfx: 'whoosh', bubble: ['Fluffy towel!', 'All dry!'] } },
+    { id: 'bathmat', name: 'Bath mat', art: 'rug', paint: pBathmat, w: 210, h: 100, tags: ['floor'] },
+    { id: 'towel-rack', name: 'Towel rack', art: 'mirror', paint: pTowel, w: 110, h: 83, tags: ['decor'], tap: { type: 'anim', anim: 'shake', sfx: 'whoosh', bubble: ['Fluffy towel!', 'All dry!'] } },
     { id: 'laundry-basket', name: 'Laundry basket', art: 'toybox', paint: pBasket, w: 88, h: 82, tags: ['decor'], tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['Laundry day!', 'Socks go here!'] } },
     { id: 'bath-shelf', name: 'Bathroom shelf', art: 'bookshelf', paint: pBathShelf, w: 111, h: 154, tags: ['decor'], tap: { type: 'spawn', toggle: false, items: ['soap', 'duck', 'toothbrush'] } },
     { id: 'bath-cart', name: 'Bath cart', art: 'toybox', paint: pBathCart, w: 102, h: 118, tags: ['decor'], tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['Squeaky wheels!', 'Bubbles and lotion!'] } },
@@ -335,13 +341,13 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries(
     { id: 'step-stool', name: 'Step stool', art: 'toybox', paint: pStool, w: 95, h: 55, tags: ['seat', 'decor'], seatLift: 40 },
     { id: 'door', name: 'Door', art: 'door', paint: pDoor, w: 150, h: 275, fixed: true, tags: ['door'] },
     { id: 'door-pink', name: 'Door', art: 'door', paint: pDoorPink, w: 174, h: 275, fixed: true, tags: ['door'] },
-    { id: 'lamp-pink', name: 'Table lamp', art: 'lamp', paint: pLampPink, w: 96, h: 143, tags: ['decor'], tap: { type: 'toggle', sfx: 'click' } },
-    { id: 'studydesk', name: 'Study desk', art: 'desk', paint: pStudyDesk, w: 236, h: 217, tags: ['table', 'decor'], tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['Homework time! ✏️', 'Let’s draw something!', 'So tidy!'] } },
+    { id: 'lamp-pink', name: 'Table lamp', art: 'lamp', paint: pLampPink, w: 106, h: 140, tags: ['decor'], tap: { type: 'toggle', sfx: 'click' } },
+    { id: 'studydesk', name: 'Study desk', art: 'desk', paint: pStudyDesk, w: 236, h: 245, tags: ['table', 'decor'], tap: { type: 'anim', anim: 'shake', sfx: 'pop', bubble: ['Homework time! ✏️', 'Let’s draw something!', 'So tidy!'] } },
     { id: 'secretspot', name: 'Sparkle', art: 'sparkle', w: 70, h: 50, fixed: true, tags: [],
       tap: { type: 'secret', secretId: 'underbed', taps: 1, sfx: 'sparkle' } },
 
     // ── Shop / reward decor ───────────────────────────
-    { id: 'plant', name: 'Leafy plant', art: 'plant', paint: pPlant, w: 125, h: 123, tags: ['decor'], tap: { type: 'anim', anim: 'shake', sfx: 'whoosh', bubble: ['Rustle rustle', 'Thanks for the water!'] } },
+    { id: 'plant', name: 'Leafy plant', art: 'plant', paint: pPlant, w: 113, h: 150, tags: ['decor'], tap: { type: 'anim', anim: 'shake', sfx: 'whoosh', bubble: ['Rustle rustle', 'Thanks for the water!'] } },
     { id: 'beanbag', name: 'Beanbag', art: 'beanbag', w: 140, h: 100, tags: ['seat', 'decor'], seatLift: 38 },
     { id: 'fishbowl', name: 'Fishbowl', art: 'fishbowl', w: 110, h: 110, tags: ['decor'], tap: { type: 'anim', anim: 'shake', sfx: 'splash', bubble: ['Blub blub!'] } },
     { id: 'starrug', name: 'Star rug', art: 'starrug', w: 300, h: 70, tags: ['floor', 'decor'] },

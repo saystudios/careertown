@@ -118,8 +118,32 @@ export function addStarterPack(g: GameState): GameState {
     g = { ...g, owned: [...g.owned, 'pack:vector-family-1'],
       characters: g.characters.map((c) => (c.sprite && FAMILY_DOLLS[c.sprite] && !c.doll ? { ...c, doll: { ...FAMILY_DOLLS[c.sprite] }, colors: undefined, outfit: undefined } : c)) };
   }
+  // New painted home (Oct 2026): rooms with a big window, so the big furniture moves to its new spot once.
+  // Whatever sits on a moved piece (cookie jar, lamp, fruit) moves with it.
+  if (!g.owned.includes('pack:home-art-1')) {
+    const scenes = { ...g.scenes };
+    for (const room of ['home-kitchen', 'home-bedroom', 'home-living', 'home-bathroom'] as SceneId[]) {
+      const es = scenes[room]; if (!es) continue;
+      const spots = initialScene(room).filter((e) => e.kind === 'item' && HOME_ART_MOVES.has(e.ref));
+      const used = new Map<string, number>();
+      const delta = new Map<string, { x: number; y: number }>();
+      for (const e of es) {
+        if (e.kind !== 'item' || !HOME_ART_MOVES.has(e.ref)) continue;
+        const k = used.get(e.ref) ?? 0; used.set(e.ref, k + 1);
+        const spot = spots.filter((s) => s.ref === e.ref)[k];
+        if (spot) delta.set(e.id, { x: spot.x - e.x, y: spot.y - e.y });
+      }
+      scenes[room] = es.map((e) => {
+        const d = delta.get(e.id) ?? delta.get((e.state?.on as string) ?? '');
+        return d ? { ...e, x: e.x + d.x, y: e.y + d.y } : e;
+      });
+    }
+    g = { ...g, owned: [...g.owned, 'pack:home-art-1'], scenes };
+  }
   return g;
 }
+const HOME_ART_MOVES = new Set(['cupboard', 'fridge', 'counter', 'stove', 'table', 'chair', 'closet', 'rug', 'bed', 'studydesk', 'toybox',
+  'bookshelf', 'couch', 'tv', 'lamp', 'armchair', 'plant', 'shower', 'toilet', 'mirror', 'bathsink', 'towel-rack', 'bath-shelf', 'laundry-basket', 'bathmat', 'step-stool']);
 
 export function addFamily(g: GameState): GameState {
   if (g.characters.some((c) => c.sprite)) return g;
