@@ -30,10 +30,10 @@ export interface SceneDef {
 export const ART_WIDE = 1.6;
 
 export const SCENES: Record<SceneId, SceneDef> = {
-  'home-kitchen': { id: 'home-kitchen', label: 'Kitchen', wall: '#FFF1B8', wallPattern: 'tiles', floor: '#F7B98B', floorPattern: 'checker', horizon: 470, art: artKitchen, anchors: { window: { box: [310, 80, 510, 290], hide: true } } },
-  'home-bedroom': { id: 'home-bedroom', label: 'Bedroom', wall: '#D9CCFF', wallPattern: 'dots', floor: '#C98F63', floorPattern: 'boards', horizon: 490, art: artBedroom, anchors: { window: { box: [400, 120, 320, 240], hide: true } } },
-  'home-living': { id: 'home-living', label: 'Living room', wall: '#BFEBDD', wallPattern: 'stripes', floor: '#B98258', floorPattern: 'boards', horizon: 480, art: artLiving, anchors: { window: { box: [400, 110, 420, 260], hide: true } } },
-  'home-bathroom': { id: 'home-bathroom', label: 'Bathroom', wall: '#CDEFFF', wallPattern: 'tiles', floor: '#9FD8E8', floorPattern: 'tiles', horizon: 500, art: artBathroom, anchors: { window: { box: [330, 80, 460, 310], hide: true } } },
+  'home-kitchen': { id: 'home-kitchen', label: 'Kitchen', wall: '#FFF1B8', wallPattern: 'tiles', floor: '#F7B98B', floorPattern: 'checker', horizon: 470, art: artKitchen, anchors: { window: { box: [246, 37, 507, 356], hide: true } } },
+  'home-bedroom': { id: 'home-bedroom', label: 'Bedroom', wall: '#D9CCFF', wallPattern: 'dots', floor: '#C98F63', floorPattern: 'boards', horizon: 490, art: artBedroom, anchors: { window: { box: [248, 36, 504, 354], hide: true } } },
+  'home-living': { id: 'home-living', label: 'Living room', wall: '#BFEBDD', wallPattern: 'stripes', floor: '#B98258', floorPattern: 'boards', horizon: 480, art: artLiving, anchors: { window: { box: [253, 36, 493, 347], hide: true } } },
+  'home-bathroom': { id: 'home-bathroom', label: 'Bathroom', wall: '#CDEFFF', wallPattern: 'tiles', floor: '#9FD8E8', floorPattern: 'tiles', horizon: 500, art: artBathroom, anchors: { window: { box: [254, 35, 491, 345], hide: true } } },
   'school-classroom': { id: 'school-classroom', label: 'Classroom', wall: '#FFE0C2', wallPattern: 'panels', floor: '#D7A46F', floorPattern: 'boards', horizon: 490, art: artClassroom, anchors: { window: { box: [0, 40, 90, 340], hide: true } } },
   'hospital-exam': { id: 'hospital-exam', label: 'Exam room', wall: '#E3F6F1', wallPattern: 'plain', floor: '#BFE3EA', floorPattern: 'tiles', horizon: 500, art: artHospital, anchors: { window: { box: [220, 140, 360, 250], hide: true } } },
   'courthouse-room': { id: 'courthouse-room', label: 'Courtroom', wall: '#E6DDF8', wallPattern: 'panels', floor: '#8E5B3F', floorPattern: 'boards', horizon: 450, art: artCourt, anchors: { window: { box: [10, 40, 140, 320], hide: true }, scales: { hide: true } } },
@@ -101,31 +101,31 @@ function baseScene(id: SceneId): Entity[] {
       const counter = it('counter', 330, 480);
       const table = it('table', 700, 610);
       return [
-        it('window', 520, 255), it('cupboard', 800, 205), it('fridge', 115, 480), counter,
-        it('stove', 515, 480), { ...it('cookiejar', 300, 312), state: { on: counter.id } }, table,
-        it('chair', 540, 625), it('chair', 870, 625), it('door', 925, 470, { to: 'home-living' }),
-        { ...it('apple', 670, 488), state: { on: table.id } }, { ...it('banana', 740, 488), state: { on: table.id } },
+        it('window', 520, 255), it('cupboard', 130, 170), it('fridge', 115, 480), counter,
+        it('stove', 530, 480), { ...it('cookiejar', 280, 385), state: { on: counter.id } }, table,
+        it('chair', 565, 625), it('chair', 835, 625), it('door', 925, 470, { to: 'home-living' }),
+        { ...it('apple', 670, 470), state: { on: table.id } }, { ...it('banana', 730, 470), state: { on: table.id } },
       ];
     }
     case 'home-bedroom': {
-      const desk = it('studydesk', 700, 560);
+      const desk = it('studydesk', 725, 560);
       return [
-        it('window', 520, 250), it('closet', 130, 520), it('rug', 470, 685), it('bed', 410, 610),
-        it('secretspot', 470, 628), desk, { ...it('lamp-pink', 760, 438), state: { on: desk.id } }, it('toybox', 800, 670),
+        it('window', 520, 250), it('closet', 125, 520), it('rug', 470, 685), it('bed', 470, 610),
+        it('secretspot', 470, 628), desk, { ...it('lamp-pink', 800, 448), state: { on: desk.id } }, it('toybox', 830, 680),
         it('backpack', 300, 680), it('clock', 640, 680), it('door-pink', 925, 500, { to: 'home-bathroom' }),
       ];
     }
     case 'home-living':
       return [
-        it('window', 330, 250), it('bookshelf', 110, 500), it('rug', 470, 670), it('couch', 450, 585),
-        it('tv', 790, 545), it('lamp', 640, 520), it('door', 925, 500, { to: 'home-bedroom' }),
-        it('armchair', 235, 640), it('plant', 690, 690),
+        it('window', 330, 250), it('bookshelf', 105, 500), it('rug', 470, 670), it('couch', 470, 585),
+        it('tv', 800, 545), it('lamp', 655, 520), it('door', 925, 500, { to: 'home-bedroom' }),
+        it('armchair', 215, 645), it('plant', 700, 690),
       ];
     case 'home-bathroom':
       return [
-        it('shower', 160, 530), it('toilet', 380, 515), it('mirror', 600, 393), it('bathsink', 600, 505),
-        it('towel-rack', 760, 300), it('bath-shelf', 770, 520), it('laundry-basket', 460, 520),
-        it('bathmat', 430, 650), it('toothbrush', 560, 660), it('duck', 160, 660), it('step-stool', 610, 640),
+        it('shower', 400, 530), it('toilet', 640, 515), it('mirror', 140, 315), it('bathsink', 140, 505),
+        it('towel-rack', 790, 330), it('bath-shelf', 780, 520), it('laundry-basket', 270, 560),
+        it('bathmat', 400, 650), it('toothbrush', 120, 660), it('duck', 400, 660), it('step-stool', 140, 640),
         it('door-white', 925, 500, { to: 'home-kitchen' }),
       ];
     case 'school-classroom': {
