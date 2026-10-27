@@ -494,3 +494,76 @@ body.photo-mode .room-sign { display: none !important; }
 .undo-btn:active { transform: translateX(-50%) translateY(3px); box-shadow: 0 1px 0 #2B2350; }
 body.photo-mode .undo-btn, body.photo-mode .face-pick { display: none !important; }
 @keyframes popx { from { opacity: 0; transform: translateX(-50%) scale(.8); } }
+
+/* ── Title screen: welcome sign over the painted town (Oct 2026) ── */
+.title-screen { position: fixed; inset: 0; z-index: 48; overflow: hidden; background: #7FD3F7; transition: opacity .42s ease, transform .42s ease; }
+.title-screen.ts-leave { opacity: 0; transform: scale(1.04); pointer-events: none; }
+.ts-town { position: absolute; z-index: 0; inset: -4%; background-size: cover; background-position: 0% 30%; animation: ts-pan 70s ease-in-out infinite alternate; }
+@keyframes ts-pan { from { background-position: 0% 30%; } to { background-position: 100% 60%; } }
+.ts-tint { position: absolute; z-index: 1; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,0) 40%, rgba(43,35,80,.25) 100%); }
+.ts-morning .ts-tint { background: linear-gradient(180deg, rgba(255,190,150,.35), rgba(43,35,80,.25)); }
+.ts-sunset .ts-tint { background: linear-gradient(180deg, rgba(255,120,80,.35), rgba(120,40,120,.35)); }
+.ts-night .ts-tint { background: linear-gradient(180deg, rgba(20,20,70,.6), rgba(10,10,40,.55)); }
+.ts-halloween.ts-day .ts-tint { background: linear-gradient(180deg, rgba(110,60,170,.18), rgba(43,35,80,.3)); }
+.ts-balloon { position: absolute; z-index: 2; top: 8%; width: clamp(40px, 6vw, 80px); animation: ts-float 26s linear infinite; pointer-events: none; }
+@keyframes ts-float { from { left: -10%; transform: translateY(0); } 50% { transform: translateY(18px); } to { left: 110%; transform: translateY(0); } }
+
+.ts-top { position: absolute; z-index: 6; top: max(10px, env(safe-area-inset-top, 0px)); right: max(10px, env(safe-area-inset-right, 0px)); display: flex; gap: 8px; }
+.ts-top-btn { display: flex; align-items: center; gap: 6px; font-size: 20px; }
+.ts-top-label { font-size: 16px; }
+
+/* the welcome sign hangs above the street */
+.ts-sign-wrap { position: absolute; left: 50%; top: 4%; transform: translateX(-50%); width: min(76vw, 96dvh, 760px); z-index: 3; }
+.ts-sign { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(0 6px 10px rgba(20,10,50,.3)); animation: ts-sway 5s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes ts-sway { 0%, 100% { transform: rotate(-.8deg); } 50% { transform: rotate(.8deg); } }
+
+/* sidewalk strip along the bottom with the family and the buttons */
+.ts-street { position: absolute; left: 0; right: 0; bottom: 0; height: 34%; z-index: 4; }
+.ts-sidewalk { position: absolute; left: 0; right: 0; bottom: 0; height: 30%;
+  background: repeating-linear-gradient(90deg, #E9D7BD 0 110px, #DCC6A6 110px 114px); border-top: 4px solid #2B2350; box-shadow: 0 -6px 0 #B98258; }
+.ts-kid { position: absolute; bottom: 14%; height: 92%; pointer-events: none; animation: hop 1.3s ease-in-out infinite; }
+.ts-kid-a { left: 3%; }
+.ts-kid-b { right: 3%; }
+.ts-pet { position: absolute; left: calc(3% + 13vh); bottom: 12%; height: 30%; aspect-ratio: 1; pointer-events: none; }
+.ts-actions { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; align-items: flex-end; gap: clamp(10px, 2vw, 22px); }
+.ts-go { white-space: nowrap; font-size: clamp(24px, 4.2vw, 40px); padding: .3em 1.2em; border-radius: 22px; box-shadow: 0 6px 0 #2B2350; animation: ts-nudge 2.4s ease-in-out infinite; }
+@keyframes ts-nudge { 0%, 80%, 100% { transform: scale(1); } 88% { transform: scale(1.06); } }
+.ts-shop { display: flex; align-items: center; gap: 6px; font-size: clamp(18px, 2.6vw, 24px); }
+.ts-mailbox { position: relative; width: clamp(80px, 11vw, 120px); padding: 0; background: none; border: 0; cursor: pointer; }
+.ts-mailbox-art { width: 100%; display: block; overflow: visible; }
+.ts-mailbox:not(.has-mail) { opacity: .85; }
+.ts-mailbox.has-mail .ts-mailbox-art { animation: ts-mailhop 1.6s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes ts-mailhop { 0%, 60%, 100% { transform: translateY(0) rotate(0); } 70% { transform: translateY(-6%) rotate(-4deg); } 80% { transform: translateY(0) rotate(3deg); } }
+.ts-mail-note { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 4px; white-space: nowrap;
+  background: #fff; border: 3px solid #2B2350; border-radius: 14px; padding: 2px 10px; box-shadow: 0 3px 0 #2B2350;
+  font-family: Grandstander, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: clamp(12px, 1.6vw, 16px); color: #2B2350; }
+
+/* Halloween bats and winter snow */
+.ts-bats, .ts-snow { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
+.ts-bat { position: absolute; width: clamp(36px, 6vw, 70px); animation: ts-fly 13s linear infinite; }
+.ts-bat svg { width: 100%; display: block; animation: ts-flap .35s ease-in-out infinite alternate; }
+.ts-bat-0 { top: 12%; animation-delay: -2s; }
+.ts-bat-1 { top: 30%; animation-delay: -7s; animation-duration: 16s; width: clamp(26px, 4vw, 48px); }
+.ts-bat-2 { top: 50%; animation-delay: -11s; animation-duration: 18s; width: clamp(28px, 4.5vw, 54px); }
+@keyframes ts-fly { from { left: -10%; translate: 0 0; } 50% { translate: 0 -30px; } to { left: 110%; translate: 0 0; } }
+@keyframes ts-flap { from { transform: scaleY(1); } to { transform: scaleY(.55); } }
+.ts-snow span { position: absolute; top: -4%; border-radius: 50%; background: #fff; opacity: .9; animation: ts-fall 8s linear infinite; }
+@keyframes ts-fall { to { transform: translate(30px, 110dvh); } }
+
+/* short sideways phones */
+@media (max-height: 460px) {
+  .ts-sign-wrap { width: min(60vw, 100dvh); top: 3%; }
+  .ts-street { height: 38%; }
+  .ts-top-label { display: none; }
+  .ts-pet { left: calc(3% + 15vh); }
+}
+/* tall screens (iPad portrait) */
+@media (orientation: portrait) {
+  .ts-sign-wrap { width: 90vw; top: 9%; }
+  .ts-street { height: 26%; }
+  .ts-kid { height: 80%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ts-town, .ts-balloon, .ts-sign, .ts-go, .ts-mailbox-art, .ts-kid, .ts-bat, .ts-bat svg, .ts-snow span { animation: none !important; }
+  .ts-bats, .ts-snow { display: none; }
+}

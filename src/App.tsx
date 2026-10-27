@@ -33,9 +33,7 @@ import { FishingMission } from './missions/FishingMission';
 import { PlaygroundMission } from './missions/PlaygroundMission';
 import { TrailMission } from './missions/TrailMission';
 import { UpstanderMission } from './missions/UpstanderMission';
-import { Person } from './components/Person';
-import { SPRITES } from './data/sprites';
-import { sfx } from './engine/sfx';
+import { TitleScreen } from './scenes/TitleScreen';
 
 // Mission registry: add a new career mission by adding one line here + data in data/missions.ts
 const MISSION_VIEWS: Record<string, (p: { onExit: () => void }) => ReactElement> = {
@@ -64,8 +62,15 @@ function Game() {
   // Style Pack (bought in the iPhone/iPad app): check with Apple at launch; the friends join each save once.
   const stylePack = useOwned(STYLE_PACK.productId);
   useEffect(() => { refreshOwned(); }, []);
-  // a sticker for each day you play, and special stickers when you earn them
-  useEffect(() => { if (game.seenIntro) dispatch({ type: 'NEW_DAY', date: todayKey() }); }, [game.seenIntro, dispatch]);
+  // the title screen opens every time the game starts; its free gift is the day's sticker + coins
+  const [titleOpen, setTitleOpen] = useState(true);
+  const leaveTitle = () => {
+    setTitleOpen(false);
+    if (!game.seenIntro) dispatch({ type: 'SEEN_INTRO' });
+    // a gift left unopened is still given when you go into town
+    dispatch({ type: 'NEW_DAY', date: todayKey() });
+  };
+  // special stickers when you earn them
   useEffect(() => {
     const have = game.stickers ?? [];
     const s = SPECIAL_STICKERS.find((x) => !have.includes(x.id) && x.got(game));
@@ -129,7 +134,7 @@ function Game() {
       <main className="flex-1 min-h-0">{body}</main>
       {shop && <Shop onClose={() => setShop(false)} />}
       <BreakReminder />
-      {!game.seenIntro && <Intro onPlay={() => { sfx('success'); dispatch({ type: 'SEEN_INTRO' }); }} />}
+      {titleOpen && <TitleScreen onPlay={leaveTitle} onShop={() => setShop(true)} onCreator={() => { leaveTitle(); setScreen({ name: 'creator' }); }} />}
       <RotateHint />
       <RewardPopup />
       <Toast />
@@ -146,28 +151,6 @@ function RotateHint() {
       <p className="font-display text-3xl font-extrabold text-ink mt-4">Turn your phone sideways</p>
       <p className="font-body text-ink mt-2">CareerTown has more room to play that way.</p>
       <Btn tone="white" className="mt-5" onClick={() => setHidden(true)}>Play like this</Btn>
-    </div>
-  );
-}
-
-function Intro({ onPlay }: { onPlay: () => void }) {
-  const { game } = useGame();
-  return (
-    <div className="fixed inset-0 z-[90] intro grid place-items-center p-4 overflow-y-auto">
-      <div className="intro-card text-center relative">
-        <div className="flex justify-center items-end gap-2 h-40 sm:h-56 mb-2">
-          {game.characters.slice(0, 2).map((c, i) => {
-            // Characters with artwork keep their real shape and relative height (tallest = full height).
-            const sp = c.sprite ? SPRITES[c.sprite] : undefined;
-            return sp
-              ? <div key={c.id} className="intro-wave" style={{ animationDelay: `${i * 0.2}s`, height: `${Math.min(100, (sp.h / 262) * 100)}%`, aspectRatio: `${sp.w} / ${sp.h}` }}><Person c={c} mood="happy" /></div>
-              : <div key={c.id} className={`${c.age === 'adult' ? 'w-24 sm:w-32 h-full' : 'w-20 sm:w-28 h-[80%]'} intro-wave`} style={{ animationDelay: `${i * 0.2}s` }}><Person c={c} mood="happy" /></div>;
-          })}
-        </div>
-        <h1 className="logo-big font-display font-extrabold text-ink leading-none">CareerTown</h1>
-        <p className="font-body text-ink text-lg sm:text-2xl mt-3 max-w-md mx-auto">Build a family, explore the town and try out real jobs.</p>
-        <Btn tone="berry" className="mt-6 text-2xl sm:text-3xl px-10 py-4" onClick={onPlay}>Let’s play!</Btn>
-      </div>
     </div>
   );
 }
