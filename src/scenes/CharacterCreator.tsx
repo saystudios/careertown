@@ -103,10 +103,13 @@ function newDoll(): CharacterData {
     paper: { base: 'kid', tone: Math.floor(Math.random() * 4), hair: 'wavy', hairColor: 'darkbrown', top: 'pink-hoodie', bottom: 'baggy-jeans', shoes: 'gray-sneakers', acc: {} } };
 }
 
+/** Pass as editId to start the character maker on a brand-new friend. */
+export const NEW_CHARACTER = '__new';
+
 export function CharacterCreator({ editId, onDone }: { editId?: string; onDone: () => void }) {
   const { game, dispatch } = useGame();
-  const start = game.characters.find((c) => c.id === (editId ?? game.activeCharacterId)) ?? game.characters[0];
-  const [draft, setDraft] = useState<CharacterData>(start ?? newDoll());
+  const start = editId === NEW_CHARACTER ? undefined : game.characters.find((c) => c.id === (editId ?? game.activeCharacterId)) ?? game.characters[0];
+  const [draft, setDraft] = useState<CharacterData>(() => start ?? newDoll());
   const isNew = !game.characters.some((c) => c.id === draft.id);
 
   const save = () => {

@@ -6,7 +6,7 @@ import { ITEMS, has } from '../data/items';
 import { LAYERED } from '../data/sprites';
 import { SCENES } from '../data/scenes';
 import { SECRETS, VISITORS } from '../data/catalog';
-import { ROOM_H, ROOM_W, dependentsOf, depthOf, getState, resolveDrop, sizeOf, withState, type Effect, type Lookup } from '../engine/interactions';
+import { ROOM_H, ROOM_W, dependentsOf, depthOf, getState, resolveDrop, sizeOf, walkTarget, withState, type Effect, type Lookup } from '../engine/interactions';
 import { type Mood } from './art/Character';
 import { Person, PetPic } from './Person';
 import { ItemIcon } from './ItemIcon';
@@ -375,8 +375,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
   const walkTo = (cx: number, cy: number) => {
     const p = toRoom(cx, cy);
     const [xMin, xMax] = playBounds();
-    const x = Math.max(xMin, Math.min(xMax, p.x));
-    const y = Math.max(def.horizon + 60, Math.min(695, p.y));
+    const { x, y } = walkTarget(p.x, p.y, def.horizon, xMin, xMax);
     const key = uid('m'); setMarks((m) => [...m, { key, x, y }]);
     window.setTimeout(() => setMarks((m) => m.filter((v) => v.key !== key)), 900);
     const people = entities.filter((v) => v.kind === 'character' && v.pose !== 'sleep' && !v.heldBy);

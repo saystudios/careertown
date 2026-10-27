@@ -32,6 +32,7 @@ npm install
 npm run dev        # local dev server
 npm run build      # production build (dist/)
 npm run typecheck  # optional TypeScript check
+npm test           # automated tests (tests/*.test.ts, Node's built-in test runner; no extra packages)
 ```
 Copy `dist/index.html` and `dist/assets/` to the `main` branch to publish.
 The game's fonts (Lexend, Grandstander; SIL Open Font License) ship in `src/assets/fonts/`, so the
@@ -54,6 +55,10 @@ Every dress-up piece (body, faces, 15 hairstyles, 43 clothes, the grown-up build
 - **Town map**: 8 playable buildings, 2 "Soon" buildings (Shopping Center, Bank), hidden balloon secret.
 - **The YunaVerse family**: Yuna, Natalie, Brother, Nene, Mom and Dad, plus dogs Snowy and Coco.
   Everyone, family included, can be restyled in the character maker or the closet.
+- **Dress-Up Studio** (🧑‍🎨 button, the title screen's Characters button, and closets/dressing tables in rooms):
+  big character preview, family portraits to switch who is dressing, 8 faces, and picture tabs for Hair, Tops,
+  Bottoms, Dresses, Shoes, Extras, Jobs and ♥ My looks. Every change saves straight away; Undo, Reset (back to their
+  usual outfit) and ♥ Save look (up to 6 per character). See *Dress-Up Studio* below.
 - **Character maker**: kids (and grown-ups for the family and mission characters), 4 skin tones,
   2 faces, 6 eye colors, 15 hairstyles, 9 hair colors, tops, bottoms, shoes, plus hats, glasses,
   headphones and bags. Career outfits (lab coat, suit jacket, safety vest, chef coat) unlock by finishing missions.
@@ -123,3 +128,24 @@ Implement `SaveAdapter` (see the sketch in `engine/save.ts`) and pass it to
 No free-text sharing, no multiplayer, no external links, no ads, no outside requests.
 Character names stay on device. Medical, legal and cooking content is pretend, simple and clearly
 framed as play (with "ask a grown-up" notes where it matters).
+
+## Dress-Up Studio
+- `src/scenes/DressUpStudio.tsx`: the screen. `src/data/wardrobe.ts`: every YunaVerse piece as a wardrobe item
+  (stable id like `top:pink-hoodie`, category, bodies it fits, render layer, placement per body, what it conflicts
+  with, how it unlocks), the 8 faces and the job outfits. `src/engine/outfit.ts`: the rules (put on, take off,
+  dresses vs tops/bottoms, job outfits, saved looks, cleaning up old saves). The pictures still come from
+  `src/data/paperArt.ts`, built from `art/yunaverse/` by `tools/paper/build_paper.py` (1024 x 1536 canvas, one
+  placement box per body), so new art shows up in the Studio automatically.
+- A character's look is still stored as `paper` (unchanged), plus `expression`, `paperDefault` (what Reset goes back
+  to) and `looks` (saved looks). Saves are upgraded from version 1 to 2 in `src/engine/save.ts`; nothing is lost.
+- Dresses (`FULL_OUTFITS` in wardrobe.ts) take the place of a top and bottoms. To make a new long top count as a
+  dress, add its id there.
+- Job outfits (`CAREER_PRESETS`) list their pieces per body. A job only appears for bodies that have all its art.
+
+**Art still missing** (the Studio hides these rather than stretch other pictures):
+- Lab coat, safety vest and suit jacket for the kid body (only drawn for the little-kid body), and a doctor and
+  engineer outfit for grown-ups.
+- Chef coat for the kid and little-kid bodies (only drawn for grown-ups).
+- Back views of the characters (so there is no front/back turn button yet).
+- Walking and other action poses for the YunaVerse characters (they slide and bob instead).
+

@@ -86,6 +86,10 @@ export interface Effect {
 
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+/** Where a tap on the floor sends the character: kept on the floor (below the back wall) and inside the room. */
+export function walkTarget(px: number, py: number, horizon: number, xMin = 30, xMax = 970): { x: number; y: number } {
+  return { x: clamp(px, xMin, xMax), y: clamp(py, horizon + 60, 695) };
+}
 
 function contains(e: Entity, x: number, y: number, look: Lookup, pad: number) {
   const { w, h } = sizeOf(e, look);

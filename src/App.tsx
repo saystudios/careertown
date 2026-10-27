@@ -14,7 +14,7 @@ import { HUD, RewardPopup, Toast, Btn } from './ui/kit';
 import { TownMap } from './scenes/TownMap';
 import { SceneScreen } from './scenes/SceneScreen';
 import { BuildingScreen, Passport, Shop } from './scenes/Menus';
-import { CharacterCreator } from './scenes/CharacterCreator';
+import { CharacterCreator, NEW_CHARACTER } from './scenes/CharacterCreator';
 import { VisitScreen } from './scenes/VisitScreen';
 import { Playdate } from './scenes/Playdate';
 import { LawyerMission } from './missions/LawyerMission';
@@ -34,6 +34,7 @@ import { PlaygroundMission } from './missions/PlaygroundMission';
 import { TrailMission } from './missions/TrailMission';
 import { UpstanderMission } from './missions/UpstanderMission';
 import { TitleScreen } from './scenes/TitleScreen';
+import { DressUpStudio } from './scenes/DressUpStudio';
 
 // Mission registry: add a new career mission by adding one line here + data in data/missions.ts
 const MISSION_VIEWS: Record<string, (p: { onExit: () => void }) => ReactElement> = {
@@ -81,7 +82,7 @@ function Game() {
   const homeScene = screen.name === 'scene' && screen.sceneId.startsWith('home-');
   const tune: Tune = screen.name === 'map' ? (phase === 'night' ? 'night' : 'town')
     : homeScene ? (phase === 'night' ? 'night' : 'home')
-    : screen.name === 'creator' || screen.name === 'passport' ? 'home' : 'work';
+    : screen.name === 'creator' || screen.name === 'studio' || screen.name === 'passport' ? 'home' : 'work';
   useEffect(() => { playTune(tune); }, [tune]);
   useEffect(() => { if (stylePack) dispatch({ type: 'ADD_CHARACTERS', characters: STYLE_PACK_FRIENDS, mark: 'pack:style-friends' }); }, [stylePack, dispatch]);
 
@@ -105,28 +106,29 @@ function Game() {
     case 'playdate': body = <Playdate onBack={() => setScreen({ name: 'map' })} />; break;
     case 'visit': body = <VisitScreen key={screen.id} id={screen.id} onBack={() => setScreen({ name: 'map' })} onMission={(m) => setScreen({ name: 'mission', id: m })} onPlay={(sceneId) => setScreen({ name: 'scene', sceneId })} />; break;
     case 'building': body = <BuildingScreen id={screen.id} onScene={(sceneId) => setScreen({ name: 'scene', sceneId })} onMission={(id) => setScreen({ name: 'mission', id })} />; break;
-    case 'scene': body = <SceneScreen key={screen.sceneId} sceneId={screen.sceneId} onScene={(sceneId) => setScreen({ name: 'scene', sceneId })} onMission={(id) => setScreen({ name: 'mission', id })} />; break;
+    case 'scene': { const here = screen; body = <SceneScreen key={screen.sceneId} sceneId={screen.sceneId} onScene={(sceneId) => setScreen({ name: 'scene', sceneId })} onMission={(id) => setScreen({ name: 'mission', id })} onStudio={(characterId, room) => setScreen({ name: 'studio', characterId, back: { ...here, sceneId: room } })} />; break; }
     case 'mission': {
       const View = MISSION_VIEWS[screen.id];
       const bid = MISSIONS[screen.id].building;
       const back = () => setScreen(building(bid).playable ? { name: 'building', id: bid } : { name: 'visit', id: bid });
       body = <View key={screen.id} onExit={back} />; break;
     }
-    case 'creator': body = <CharacterCreator editId={screen.editId} onDone={() => setScreen({ name: 'map' })} />; break;
+    case 'creator': { const back = screen.back; body = <CharacterCreator key={screen.editId ?? 'active'} editId={screen.editId} onDone={() => setScreen(back ?? { name: 'map' })} />; break; }
+    case 'studio': { const here = screen; body = <DressUpStudio characterId={screen.characterId} onBack={() => setScreen(here.back ?? { name: 'map' })} onEdit={(id) => setScreen({ name: 'creator', editId: id ?? NEW_CHARACTER, back: { ...here, characterId: undefined } })} />; break; }
     case 'passport': body = <Passport />; break;
     default: body = <TownMap onEnter={enter} onVisit={(id) => setScreen({ name: 'visit', id })} />;
   }
 
   return (
     <div className="app relative h-[100dvh] flex flex-col overflow-hidden">
-      {screen.name !== 'mission' && (
+      {screen.name !== 'mission' && screen.name !== 'studio' && (
         <div className={screen.name === 'map' || screen.name === 'scene' ? 'hud-float absolute inset-x-0 top-0 z-40 pointer-events-none [&>*]:pointer-events-auto' : ''}>
         <HUD
           title={title}
           onMap={screen.name === 'map' ? undefined : () => setScreen({ name: 'map' })}
           onPassport={() => setScreen({ name: 'passport' })}
           onShop={() => setShop(true)}
-          onCreator={() => setScreen({ name: 'creator' })}
+          onCreator={() => setScreen({ name: 'studio', back: screen })}
         />
         </div>
       )}
@@ -134,7 +136,7 @@ function Game() {
       <main className="flex-1 min-h-0">{body}</main>
       {shop && <Shop onClose={() => setShop(false)} />}
       <BreakReminder />
-      {titleOpen && <TitleScreen onPlay={leaveTitle} onShop={() => setShop(true)} onCreator={() => { leaveTitle(); setScreen({ name: 'creator' }); }} />}
+      {titleOpen && <TitleScreen onPlay={leaveTitle} onShop={() => setShop(true)} onCreator={() => { leaveTitle(); setScreen({ name: 'studio', back: { name: 'map' } }); }} />}
       <RotateHint />
       <RewardPopup />
       <Toast />

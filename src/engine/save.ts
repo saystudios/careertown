@@ -1,4 +1,5 @@
 import type { GameState } from './types';
+import { upgradeCharacter } from './outfit';
 
 /**
  * Save adapters. The game only talks to this interface, so cloud saves
@@ -57,13 +58,17 @@ export const localSave: SaveAdapter = {
  * family's saves private. No chat, no public profiles, no multiplayer.
  */
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 /**
  * Save upgrades. When the save format changes, bump SAVE_VERSION and add a step here that turns a
  * version-N save into a version-N+1 save. Older saves are upgraded step by step instead of being dropped.
  */
-export const MIGRATIONS: Record<number, (g: GameState) => GameState> = {};
+export const MIGRATIONS: Record<number, (g: GameState) => GameState> = {
+  // 1 → 2 (Dress-Up Studio, Oct 2026): each character's look is checked so it is safe to draw, keeps a
+  // default look to reset to, and gets room for saved looks and a chosen face. Progress is untouched.
+  1: (g) => ({ ...g, characters: (g.characters ?? []).map(upgradeCharacter) }),
+};
 export function migrate(g: GameState): GameState {
   let v = g.version ?? 1;
   while (v < SAVE_VERSION) { g = (MIGRATIONS[v] ?? ((x) => x))({ ...g }); v += 1; g = { ...g, version: v }; }

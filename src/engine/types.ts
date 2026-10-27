@@ -58,6 +58,12 @@ export interface CharacterData {
   paper?: PaperLook;
   /** Recolored top / bottom (swatch names from data/clothes.ts) for layered artwork characters. */
   colors?: { top?: string; bottom?: string };
+  /** Face the character wears when they aren't doing anything (data/wardrobe.ts EXPRESSIONS). */
+  expression?: string;
+  /** YunaVerse look that Reset in the Dress-Up Studio goes back to (family use their own outfits). */
+  paperDefault?: PaperLook;
+  /** Looks saved with the ♥ button in the Dress-Up Studio (newest first). */
+  looks?: PaperLook[];
 }
 
 export interface DollLook {
@@ -164,7 +170,8 @@ export type Screen =
   | { name: 'building'; id: BuildingId }
   | { name: 'scene'; sceneId: SceneId }
   | { name: 'mission'; id: string }
-  | { name: 'creator'; editId?: string }
+  | { name: 'creator'; editId?: string; back?: Screen }
+  | { name: 'studio'; characterId?: string; back?: Screen }
   | { name: 'passport' }
   | { name: 'visit'; id: BuildingId }
   | { name: 'playdate' }

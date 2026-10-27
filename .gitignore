@@ -6,3 +6,4 @@ tools/sheets/out/
 tools/sheets/*.out.cjs
 .DS_Store
 __pycache__/
+.test-out/

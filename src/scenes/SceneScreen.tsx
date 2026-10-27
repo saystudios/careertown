@@ -25,7 +25,7 @@ import { useDayPhase } from '../engine/dayPhase';
 import { PhotoMode } from '../components/PhotoMode';
 import { SCENES } from '../data/scenes';
 
-export function SceneScreen({ sceneId: startScene, onMission }: { sceneId: SceneId; onScene: (s: SceneId) => void; onMission: (id: string) => void }) {
+export function SceneScreen({ sceneId: startScene, onMission, onStudio }: { sceneId: SceneId; onScene: (s: SceneId) => void; onMission: (id: string) => void; onStudio?: (characterId: string, room: SceneId) => void }) {
   const { game, dispatch } = useGame();
   const b = BUILDINGS.find((x) => x.rooms.some((r) => r.sceneId === startScene))!;
   // Toca-style: every room of the building sits side by side; swipe across them. `sceneId` = the room in the middle of the screen.
@@ -130,7 +130,7 @@ export function SceneScreen({ sceneId: startScene, onMission }: { sceneId: Scene
         onPointerUp={() => { pan.current = null; }} onPointerLeave={() => { pan.current = null; }}>
         {b.rooms.map((r) => (
           <div key={r.sceneId} ref={(el) => { panels.current[r.sceneId] = el; }} className="room-panel" data-scene={r.sceneId}>
-            <Room sceneId={r.sceneId} townNight={night} onWardrobe={setWardrobe} onCustomTap={(e) => (e.ref === 'chalkboard' || e.ref === 'easel') && setDrawOn(e)}
+            <Room sceneId={r.sceneId} townNight={night} onWardrobe={(id) => (onStudio ? window.setTimeout(() => onStudio(id, r.sceneId), 300) : setWardrobe(id))} onCustomTap={(e) => (e.ref === 'chalkboard' || e.ref === 'easel') && setDrawOn(e)}
               onEdge={onEdge} onCross={multi ? onCross(r.sceneId) : undefined} onSnapshot={snapshot}
               onMovedTo={(to) => { if (b.rooms.some((x) => x.sceneId === to)) { centre(to, true); setCur(to); } }} />
             {multi ? <span className="room-sign">{r.icon} {SCENES[r.sceneId].label}</span> : <><Worker building={b.id} /><Visitors building={b.id} /></>}
