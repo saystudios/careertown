@@ -164,7 +164,7 @@ export const levelProgress = (xp: number) => (xp % 150) / 150;
 
 // ── Actions ────────────────────────────────────────────
 export interface Popup { id: string; title: string; reward: Reward }
-interface Root { game: GameState; queue: Popup[]; toast?: { id: string; text: string } }
+export interface Root { game: GameState; queue: Popup[]; toast?: { id: string; text: string } }
 
 export type Action =
   | { type: 'LOAD'; game: GameState }
@@ -231,7 +231,7 @@ function withPopup(root: Root, game: GameState, reward: Reward, title: string): 
   return { ...root, game: applyReward(game, reward), queue: [...root.queue, { id: uid('pop'), title, reward }] };
 }
 
-function reducer(root: Root, a: Action): Root {
+export function reducer(root: Root, a: Action): Root {
   const g = root.game;
   const setScene = (scene: SceneId, list: Entity[]): Root => ({ ...root, game: { ...g, scenes: { ...g.scenes, [scene]: list } } });
 
@@ -326,7 +326,9 @@ function reducer(root: Root, a: Action): Root {
     }
     case 'SAVE_CHARACTER': {
       const exists = g.characters.some((c) => c.id === a.character.id);
-      const characters = exists ? g.characters.map((c) => (c.id === a.character.id ? a.character : c)) : [...g.characters, a.character];
+      // A new YunaVerse character remembers the look they were made with, for Reset in the Dress-Up Studio.
+      const made = !exists && a.character.paper && !a.character.paperDefault ? { ...a.character, paperDefault: { ...a.character.paper, acc: { ...(a.character.paper.acc ?? {}) } } } : a.character;
+      const characters = exists ? g.characters.map((c) => (c.id === a.character.id ? a.character : c)) : [...g.characters, made];
       return { ...root, game: { ...g, characters, activeCharacterId: a.character.id } };
     }
     case 'DELETE_CHARACTER': {
