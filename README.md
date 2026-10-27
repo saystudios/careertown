@@ -46,6 +46,11 @@ Every dress-up piece (body, faces, 15 hairstyles, 43 clothes, the grown-up build
 `src/data/dollArt.ts`. `tools/art/prev.py` renders preview sheets (needs Playwright).
 
 ## What's playable
+- **Title screen** (every launch): the town as a little spinning planet, a big Play button, a daily
+  free gift (sticker + coins; given on Play if not tapped), Shop, Characters and Settings buttons.
+  The logo changes with the season: a pumpkin in October, a snowball in December
+  (`src/data/season.ts`; preview with `?season=halloween`, `?season=winter` or `?season=none`).
+  The planet picture `src/assets/town/town-planet.webp` is the town map wrapped into a circle.
 - **Town map**: 8 playable buildings, 2 "Soon" buildings (Shopping Center, Bank), hidden balloon secret.
 - **The YunaVerse family**: Yuna, Natalie, Brother, Nene, Mom and Dad, plus dogs Snowy and Coco.
   Everyone, family included, can be restyled in the character maker or the closet.

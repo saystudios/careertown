@@ -494,3 +494,112 @@ body.photo-mode .room-sign { display: none !important; }
 .undo-btn:active { transform: translateX(-50%) translateY(3px); box-shadow: 0 1px 0 #2B2350; }
 body.photo-mode .undo-btn, body.photo-mode .face-pick { display: none !important; }
 @keyframes popx { from { opacity: 0; transform: translateX(-50%) scale(.8); } }
+
+/* ── Title screen: the town as a little planet (Oct 2026) ── */
+.title-screen { position: fixed; inset: 0; z-index: 48; overflow: hidden; display: grid; place-items: center;
+  --bg1: #3B2E7E; --bg2: #1E1650; --au1: #FF7FB5; --au2: #5FE0B7; --au3: #7FD3F7; --glow: rgba(255,255,255,.55);
+  background: radial-gradient(ellipse at 50% 45%, var(--bg1) 0%, var(--bg2) 75%);
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  transition: opacity .38s ease, transform .38s ease; }
+.title-screen.ts-halloween { --bg1: #4B2A86; --bg2: #1C0B3A; --au1: #7CFF6B; --au2: #FF8A3D; --au3: #B57BFF; --glow: rgba(140,255,120,.55); }
+.title-screen.ts-winter { --bg1: #3C6FB0; --bg2: #13284F; --au1: #9BE7FF; --au2: #FFFFFF; --au3: #A98BFF; --glow: rgba(200,240,255,.6); }
+.title-screen.ts-leave { opacity: 0; transform: scale(1.06); pointer-events: none; }
+
+.ts-aurora, .ts-sparkles, .ts-bats, .ts-snow { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.ts-aurora i { position: absolute; border-radius: 50%; filter: blur(48px); opacity: .45; animation: ts-drift 14s ease-in-out infinite alternate; }
+.ts-aurora i:nth-child(1) { left: -10%; top: 20%; width: 60%; height: 30%; background: var(--au1); transform: rotate(-18deg); }
+.ts-aurora i:nth-child(2) { right: -12%; top: 35%; width: 55%; height: 26%; background: var(--au2); transform: rotate(14deg); animation-delay: -5s; }
+.ts-aurora i:nth-child(3) { left: 20%; bottom: -10%; width: 60%; height: 30%; background: var(--au3); animation-delay: -9s; }
+@keyframes ts-drift { from { translate: -4% 0; } to { translate: 4% -6%; } }
+
+.ts-sparkles span { position: absolute; color: #fff; animation: ts-twinkle 2.4s ease-in-out infinite; }
+.ts-sparkles svg { width: 100%; height: 100%; display: block; }
+@keyframes ts-twinkle { 0%, 100% { opacity: .25; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.1); } }
+
+/* the planet and everything around it is sized from --p */
+.ts-stage { position: relative; --p: min(84dvh, 60vw); width: var(--p); height: var(--p); }
+.ts-glow { position: absolute; inset: -14%; border-radius: 50%; background: radial-gradient(circle, var(--glow) 0%, transparent 62%); animation: ts-pulse 4s ease-in-out infinite; }
+@keyframes ts-pulse { 0%, 100% { opacity: .75; transform: scale(.97); } 50% { opacity: 1; transform: scale(1.03); } }
+.ts-planet { position: absolute; inset: 0; border-radius: 50%; padding: 0; border: 0; background: none; cursor: pointer;
+  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 calc(var(--p) * .02) 0 rgba(20,10,50,.35)); }
+.ts-planet img { width: 100%; height: 100%; display: block; border-radius: 50%; animation: ts-spin 160s linear infinite; }
+@keyframes ts-spin { to { transform: rotate(360deg); } }
+
+.ts-clouds { position: absolute; left: -4%; right: -4%; bottom: -6%; height: 16%; pointer-events: none; z-index: 2; }
+.ts-clouds svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+.ts-kid { position: absolute; bottom: 1%; height: 38%; z-index: 3; pointer-events: none; animation: hop 1.2s ease-in-out infinite; }
+.ts-kid-left { left: -20%; }
+.ts-kid-right { right: -20%; }
+
+.ts-logo { position: absolute; left: 50%; top: 38%; width: calc(var(--p) * 1.16); transform: translate(-50%, -50%) rotate(-3deg); z-index: 4; margin: 0; pointer-events: none; }
+.ts-logo svg { width: 100%; height: auto; display: block; overflow: visible; }
+.ts-swap { transform-box: fill-box; transform-origin: 50% 60%; animation: wiggle 2.4s ease-in-out infinite; }
+
+.ts-buttons { position: absolute; left: 50%; top: 61%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: calc(var(--p) * .045); }
+.ts-round { position: relative; display: grid; place-items: center; border-radius: 50%; padding: 0; cursor: pointer;
+  border: calc(var(--p) * .016) solid #fff; box-shadow: 0 0 0 3px #2B2350, 0 calc(var(--p) * .018) 0 3px #2B2350; transition: transform .12s ease; }
+.ts-round:active, .ts-gift:active { transform: translateY(3px) scale(.96); }
+.ts-round svg { width: 62%; height: 62%; display: block; }
+.ts-play { width: calc(var(--p) * .27); height: calc(var(--p) * .27); background: radial-gradient(circle at 35% 30%, #A8E4FF, #3DA5F0 70%); animation: ts-bob 2.2s ease-in-out infinite; }
+.ts-shop { width: calc(var(--p) * .19); height: calc(var(--p) * .19); background: radial-gradient(circle at 35% 30%, #6BE38A, #1FA34A 70%); }
+.ts-badge { position: absolute; top: -18%; right: -18%; width: 46%; height: 46%; border-radius: 50%; background: #FFE04A; border: 3px solid #fff;
+  display: grid; place-items: center; color: #FF7A1A; box-shadow: 0 0 0 2px #2B2350; animation: ts-bob 1.6s ease-in-out infinite; }
+.ts-badge svg { width: 60%; height: 60%; }
+@keyframes ts-bob { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4%) scale(1.04); } }
+.ts-gift { display: flex; align-items: center; gap: .4em; cursor: pointer; white-space: nowrap; padding: .25em .9em .25em .25em; border-radius: 999px;
+  background: #fff; border: 3px solid #2B2350; box-shadow: 0 4px 0 #2B2350; color: #E8590C;
+  font-family: Grandstander, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: max(15px, calc(var(--p) * .06)); animation: wiggle 1.8s ease-in-out infinite; }
+.ts-gift-icon { width: 1.9em; height: 1.9em; border-radius: 50%; background: #FF8A3D; display: grid; place-items: center; }
+.ts-gift-icon svg { width: 72%; height: 72%; }
+.ts-gift-spacer { width: calc(var(--p) * .19); }
+
+.ts-corner { position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); display: flex; gap: 10px; z-index: 6; }
+.ts-corner-btn { width: clamp(46px, 9dvh, 70px); height: clamp(46px, 9dvh, 70px); border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  border: 3px solid #2B2350; box-shadow: 0 4px 0 #2B2350; padding: 0; }
+.ts-corner-btn svg { width: 62%; height: 62%; }
+.ts-corner-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #2B2350; }
+
+/* shop teaser: a round card peeking in from the top-left corner */
+.ts-teaser { position: absolute; left: 0; top: 0; z-index: 6; width: clamp(150px, 26vw, 290px); aspect-ratio: 1; padding: 0; cursor: pointer;
+  border-radius: 0 0 100% 0; border: 4px solid #2B2350; border-top: 0; border-left: 0; overflow: hidden;
+  background: radial-gradient(circle at 20% 20%, #C77DFF, #6A2FC2 70%); box-shadow: 4px 4px 0 rgba(20,10,50,.4); }
+.ts-teaser-art { position: absolute; left: 5%; top: 4%; width: 46%; height: 40%; display: flex; align-items: flex-end; gap: 2%; }
+.ts-teaser-kid { height: 100%; aspect-ratio: .42; display: block; }
+.ts-teaser-emoji { font-size: clamp(20px, 3.4vw, 38px); line-height: 1.15; transform: rotate(-12deg); }
+.ts-ribbon { position: absolute; left: 36%; top: 36%; width: 150%; transform: translate(-50%, -50%) rotate(-45deg); text-align: center;
+  background: #2B2350; color: #fff; padding: .3em 0; font-family: Grandstander, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: clamp(10px, 1.45vw, 17px); }
+.ts-teaser-tab { position: absolute; left: 57%; top: 57%; transform: translate(-50%, -50%) rotate(-45deg); display: flex; align-items: center; gap: .25em; white-space: nowrap;
+  padding: .15em .6em .15em .35em; border-radius: 999px; background: #1FA34A; border: 3px solid #fff; box-shadow: 0 0 0 2px #2B2350; color: #fff;
+  font-family: Grandstander, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: clamp(12px, 1.8vw, 22px); }
+.ts-teaser-tab svg { width: 1.3em; height: 1.3em; }
+
+/* Halloween bats and winter snow */
+.ts-bat { position: absolute; width: clamp(36px, 6vw, 70px); animation: ts-fly 13s linear infinite; }
+.ts-bat svg { width: 100%; display: block; animation: ts-flap .35s ease-in-out infinite alternate; }
+.ts-bat-0 { top: 12%; animation-delay: -2s; }
+.ts-bat-1 { top: 26%; animation-delay: -7s; animation-duration: 16s; width: clamp(26px, 4vw, 48px); }
+.ts-bat-2 { top: 70%; animation-delay: -11s; animation-duration: 18s; width: clamp(28px, 4.5vw, 54px); }
+@keyframes ts-fly { from { left: -10%; translate: 0 0; } 50% { translate: 0 -30px; } to { left: 110%; translate: 0 0; } }
+@keyframes ts-flap { from { transform: scaleY(1); } to { transform: scaleY(.55); } }
+.ts-snow span { position: absolute; top: -4%; border-radius: 50%; background: #fff; opacity: .85; animation: ts-fall 8s linear infinite; }
+@keyframes ts-fall { to { transform: translate(30px, 110dvh); } }
+
+/* tall screens (phone held upright, iPad portrait) */
+@media (orientation: portrait) {
+  .ts-stage { --p: min(80vw, 56dvh); }
+  .ts-logo { width: calc(var(--p) * 1.04); }
+  .ts-kid { height: 27%; bottom: -12%; }
+  .ts-kid-left { left: -6%; }
+  .ts-kid-right { right: -6%; }
+  .ts-teaser { width: clamp(130px, 34vw, 240px); }
+  .ts-ribbon, .ts-teaser-tab { font-size: clamp(10px, 2.6vw, 17px); }
+}
+/* short sideways phones: tuck the shop card so it doesn't crowd the planet */
+@media (max-height: 460px) {
+  .ts-teaser { width: clamp(120px, 22vw, 170px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ts-planet img, .ts-aurora i, .ts-glow, .ts-play, .ts-gift, .ts-swap, .ts-kid, .ts-bat, .ts-bat svg, .ts-snow span, .ts-sparkles span, .ts-badge { animation: none !important; }
+  .ts-snow, .ts-bats { display: none; }
+}
