@@ -9,7 +9,7 @@ import { Person, PetPic } from '../components/Person';
 import { Btn, Modal, FullscreenButton } from '../ui/kit';
 import { sfx } from '../engine/sfx';
 import type { CharacterData } from '../engine/types';
-import townArt from '../assets/town/town-map.webp';
+import careerArt from '../assets/town/career-town-plaza.svg';
 import balloonArt from '../assets/town/balloon.webp';
 
 /**
@@ -43,15 +43,15 @@ export function TitleScreen({ onPlay, onShop, onCreator }: { onPlay: () => void;
 
   return (
     <div className={`title-screen ts-${s} ts-${phase} ${leaving ? 'ts-leave' : ''}`} role="dialog" aria-label="CareerTown">
-      {/* the real town, drifting slowly like the camera is flying over it */}
-      <div className="ts-town" style={{ backgroundImage: `url(${townArt})` }} aria-hidden />
+      {/* Original illustrated career plaza; clickable buildings remain on the separate game map. */}
+      <div className="ts-town" style={{ backgroundImage: `url(${careerArt})` }} aria-hidden />
       <div className="ts-tint" aria-hidden />
       <img className="ts-balloon" src={balloonArt} alt="" draggable={false} aria-hidden />
       {s === 'halloween' && <Bats />}
       {s === 'winter' && <Snow />}
 
       <div className="ts-top">
-        <Btn tone="sky" onClick={onCreator} aria-label="Characters" className="ts-top-btn">🧑‍🎨<span className="ts-top-label">Characters</span></Btn>
+        <Btn tone="sky" onClick={onCreator} aria-label="Customize hair and clothes" className="ts-top-btn">🎨<span className="ts-top-label">Hair &amp; Clothes</span></Btn>
         <Btn tone="white" onClick={() => setSettings(true)} aria-label="Settings" className="ts-top-btn">⚙️</Btn>
       </div>
 
