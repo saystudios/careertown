@@ -208,15 +208,7 @@ export function resolveDrop(d: Entity, hx: number, hy: number, x: number, y: num
         fx.anim = { id: t.id, anim: 'check', ms: 900 };
         return true;
       }
-      if (false && dd.wear && look.character(t.ref)?.sprite && LAYERED[look.character(t.ref)!.sprite!]) {
-        fx.wear = { character: t.ref, slot: dd.wear, item: d.ref };
-        fx.remove.push(d.id);
-        fx.anim = { id: t.id, anim: 'hop', ms: 800 };
-        fx.bubble = { id: t.id, text: pick(['Looking good! ✨', 'I love it!', 'So stylish!', 'How do I look?']) };
-        fx.bursts = [{ id: t.id, emoji: '✨' }];
-        fx.sfx = 'sparkle'; fx.events.push('dress');
-        return true;
-      }
+      // Retired direct drag-to-wear behavior; clothing changes in Dress-Up Studio.
       if (has(dd, 'small')) {
         const prev = t.holding && byId.get(t.holding);
         if (prev) P(prev.id, { heldBy: undefined, x: t.x + 70, y: t.y });

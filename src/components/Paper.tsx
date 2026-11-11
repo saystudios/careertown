@@ -1,7 +1,8 @@
 import type { CharacterData, PaperLook } from '../engine/types';
 import type { Mood } from './art/Character';
 import type { Face } from '../data/sprites';
-import { PAPER_BASES, PAPER_FACES, PAPER_HAIR, PAPER_CLOTHES, PAPER_ACCESSORIES, type Box, type PaperBase } from '../data/paperArt';
+import { PAPER_BASES, PAPER_HAIR, PAPER_CLOTHES, PAPER_ACCESSORIES, type Box, type PaperBase } from '../data/paperArt';
+import { toonFaceSvg } from '../data/toonFaces';
 
 /** Kids' clothes ('any') fit both kid bodies; grown-up clothes only the adult body. */
 const fits = (c: PaperBase | 'any', b: PaperBase) => c === b || (c === 'any' && b !== 'adult');
@@ -67,12 +68,17 @@ export function PaperArt({ p, face = 'happy' }: { p: PaperLook; face?: string })
     const y0 = Math.max(B.neck + 12, topAt[1]), y1 = topAt[1] + topAt[3] - 24, n0 = 512 - 56, n1 = 512 + 56;
     return `polygon(0 0, 100% 0, 100% ${Y(y0)}, ${X(n1)} ${Y(y0)}, ${X(n1)} ${Y(y1)}, 100% ${Y(y1)}, 100% 100%, 0 100%, 0 ${Y(y1)}, ${X(n0)} ${Y(y1)}, ${X(n0)} ${Y(y0)}, 0 ${Y(y0)})`;
   })() : undefined;
-  const f = PAPER_FACES[face] ?? PAPER_FACES.happy;
+  // Match the face to the body's true eye anchors so kids, little kids and adults share one art style.
+  const [[leftX, leftY], [rightX, rightY]] = B.eyes;
+  const faceScale = (rightX - leftX) / 108;
+  const faceX = (leftX + rightX) / 2 - 192 * faceScale;
+  const faceY = (leftY + rightY) / 2 - 236 * faceScale;
+  const faceSvg = `<g transform="translate(${faceX} ${faceY}) scale(${faceScale})">${toonFaceSvg(face, true)}</g>`;
   const headAcc = ['ears', 'eyes', 'hair', 'head'].map((s) => { const a = acc(s); return a ? <Piece key={s} src={a.src} at={a.at[p.base]} cv={cv} /> : null; });
   const bag = acc('bag');
   return (
     <div className="w-full h-full" style={{ position: 'relative' }}>
-      {hc('back') && <Piece src={hc('back')!} at={hair!.back.at[p.base]} cv={cv} />}
+      {hc('back') && <Piece src={hc('back')!} at={hair!.back!.at[p.base]} cv={cv} />}
       <Piece src={skin} at={B.at} cv={cv} clip={bodyClip} />
       {cloth(p.shoes)}
       {!overTop && cloth(p.bottom)}
@@ -80,8 +86,10 @@ export function PaperArt({ p, face = 'happy' }: { p: PaperLook; face?: string })
       {overTop && cloth(p.bottom)}
       {bag && <Piece src={bag.src} at={bag.at[p.base]} cv={cv} />}
       <Piece src={skin} at={B.at} cv={cv} clip={headClip} />
-      <Piece src={f.src} at={f.at[p.base]} cv={cv} />
-      {hc('front') && <Piece src={hc('front')!} at={hair!.front.at[p.base]} cv={cv} />}
+      <svg viewBox={cv.join(' ')} preserveAspectRatio="none" aria-hidden="true"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none' }}
+        dangerouslySetInnerHTML={{ __html: faceSvg }} />
+      {hc('front') && <Piece src={hc('front')!} at={hair!.front!.at[p.base]} cv={cv} />}
       {headAcc}
     </div>
   );
