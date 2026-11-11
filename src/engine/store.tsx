@@ -379,7 +379,7 @@ const GameCtx = createContext<Ctx | null>(null);
 export function GameProvider({ children, adapter = localSave }: { children: ReactNode; adapter?: SaveAdapter }) {
   const [root, dispatch] = useReducer(reducer, undefined, () => ({ game: freshGame(), queue: [] }));
   const [loaded, setLoaded] = useState(false);
-  const timer = useRef<number>();
+  const timer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     adapter.load(ACTIVE_PROFILE).then(async (saved) => {
