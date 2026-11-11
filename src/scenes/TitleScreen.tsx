@@ -86,7 +86,7 @@ export function TitleScreen({ onPlay, onShop, onCreator }: { onPlay: () => void;
             </Btn>
           </div>
           <div className="mt-3 flex items-center gap-3 font-body text-ink"><FullscreenButton /><span>Full screen</span></div>
-          <p className="font-body text-ink/70 mt-3 text-sm">Grown-ups: play limits and Playdates are in the Career Passport’s Grown-ups corner.</p>
+          <p className="font-body text-ink/70 mt-3 text-sm">Grown-ups: play limits and privacy settings are in the Career Passport’s Grown-ups corner.</p>
         </Modal>
       )}
     </div>
