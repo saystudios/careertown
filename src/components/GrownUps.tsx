@@ -69,7 +69,6 @@ export function GrownUpsCorner({ onClose, onReset }: { onClose: () => void; onRe
         {toggle(game.settings.sound, 'Sound effects', () => dispatch({ type: 'TOGGLE_SOUND' }))}
         {toggle(game.settings.music !== false, 'Background music', () => dispatch({ type: 'TOGGLE_MUSIC' }))}
         {game.pets.length > 0 && toggle(game.settings.petFollow !== false, 'Pet follows into rooms', () => dispatch({ type: 'TOGGLE_PET_FOLLOW' }))}
-        {toggle(!!game.settings.playdates, 'Nearby playdates', () => dispatch({ type: 'SET_PLAYDATES', on: !game.settings.playdates }), 'Play with a friend on another iPhone/iPad in the same room. Only the character’s name is shared; no chat, no internet.')}
         <div className="gu-row">
           <div><div className="font-display font-bold text-ink">Break reminder</div><div className="font-body text-ink/70" style={{ fontSize: 13 }}>A friendly “time for a break” message after this much play.</div></div>
           <div className="flex flex-wrap gap-1">
@@ -85,7 +84,7 @@ export function GrownUpsCorner({ onClose, onReset }: { onClose: () => void; onRe
         <h3 className="font-display font-bold text-ink text-lg">Purchases & privacy</h3>
         <p className="font-body text-ink mt-1">Style Pack: <b>{pack ? 'owned' : 'not bought'}</b>. {canBuy() ? 'Buying always asks this grown-ups question first.' : 'Purchases are only in the iPhone and iPad app.'}</p>
         {canBuy() && <Btn tone="white" className="mt-2" disabled={restoring} onClick={async () => { setRestoring(true); const r = await restore(); setRestoring(false); dispatch({ type: 'TOAST', text: r.owned?.length ? 'Purchases restored!' : r.error ?? 'Nothing to restore on this Apple ID.' }); }}>{restoring ? '…' : 'Restore purchases'}</Btn>}
-        <p className="font-body text-ink/80 mt-2" style={{ fontSize: 14 }}>CareerTown keeps progress only on this device. There are no accounts, chats, ads or tracking. Nothing goes over the internet; nearby playdates (if you turn them on) share only the character’s name and look with a device in the same room. Photos are saved only when your child taps “Take photo”.</p>
+        <p className="font-body text-ink/80 mt-2" style={{ fontSize: 14 }}>CareerTown keeps progress only on this device. There are no accounts, chats, ads or tracking. There is no player-to-player connectivity. Photos are saved only when your child taps “Take photo”.</p>
       </section>
 
       <section className="mt-4 rounded-2xl border-[3px] border-dashed border-ink/50 p-3">
