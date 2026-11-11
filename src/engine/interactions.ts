@@ -208,7 +208,7 @@ export function resolveDrop(d: Entity, hx: number, hy: number, x: number, y: num
         fx.anim = { id: t.id, anim: 'check', ms: 900 };
         return true;
       }
-      if (false && dd.wear && look.character(t.ref)?.sprite && LAYERED[look.character(t.ref)!.sprite!]) {
+      if (false && dd?.wear && dd.wear !== 'hair' && look.character(t.ref)?.sprite && LAYERED[look.character(t.ref)!.sprite!]) {
         fx.wear = { character: t.ref, slot: dd.wear, item: d.ref };
         fx.remove.push(d.id);
         fx.anim = { id: t.id, anim: 'hop', ms: 800 };
