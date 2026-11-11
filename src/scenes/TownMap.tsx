@@ -9,7 +9,6 @@ import type { BuildingId } from '../engine/types';
 import { TOWNFOLK } from '../data/townfolk';
 import { TownWalkers, DayNight, PhaseButton } from '../components/TownLife';
 import { useDayPhase } from '../engine/dayPhase';
-import { canNearby } from '../engine/nearby';
 
 /** Where each building sits in the painted town picture (px in a 1536 × 1024 image): [x, y, w, h]. */
 export const IMG_W = 1536, IMG_H = 1024;
@@ -36,7 +35,7 @@ export const SPOTS: Record<string, [number, number, number, number]> = {
 const PAINTED_LABELS = true;
 const px = (v: number, of: number) => `${(v / of) * 100}%`;
 
-export function TownMap({ onEnter, onVisit, onPlaydate }: { onEnter: (id: BuildingId) => void; onVisit: (id: BuildingId) => void; onPlaydate?: () => void }) {
+export function TownMap({ onEnter, onVisit, }: { onEnter: (id: BuildingId) => void; onVisit: (id: BuildingId) => void; }) {
   const { game, dispatch } = useGame();
   const [bump, setBump] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -62,7 +61,6 @@ export function TownMap({ onEnter, onVisit, onPlaydate }: { onEnter: (id: Buildi
   return (
     <>
     <PhaseButton phase={phase} />
-    {onPlaydate && canNearby() && <button onClick={() => { sfx('pop'); onPlaydate(); }} className="playdate-btn rounded-2xl border-[3px] border-ink bg-white shadow-chunkysm font-display font-bold text-ink">🤝 <span className="phase-label">Playdate</span></button>}
     <div ref={scroller} className="map-scroll h-full w-full overflow-auto">
       <div className="town town-full town-art relative overflow-hidden select-none">
         <img src={townArt} alt="" draggable={false} className="absolute inset-0 w-full h-full" style={{ objectFit: 'fill' }} />
