@@ -667,3 +667,31 @@ body.photo-mode .undo-btn, body.photo-mode .face-pick { display: none !important
   .ds-person { flex: 0 0 auto; min-width: 72px; }
 }
 @media (prefers-reduced-motion: reduce) { .ds-idle, .ds-char { animation: none; } }
+
+
+/* Eye-comfort palette (Nov 2026)
+   Keep illustrations colorful but reduce screen glare and strong saturation.
+   Scoped to the visual layers: interactive objects and character editor still work. */
+body {
+  background: #a7c8d4;
+  background-image: none;
+}
+.title-screen { background: #a7c8d4; }
+.ts-town { filter: saturate(.68) brightness(.87); }
+.ts-tint { background: linear-gradient(180deg, rgba(45,45,72,.10), rgba(40,32,70,.28)); }
+.ts-morning .ts-tint { background: linear-gradient(180deg, rgba(96,83,97,.17), rgba(45,40,72,.30)); }
+.ts-sunset .ts-tint { background: linear-gradient(180deg, rgba(88,64,98,.18), rgba(45,40,72,.32)); }
+.ts-night .ts-tint { background: linear-gradient(180deg, rgba(20,20,70,.5), rgba(10,10,40,.55)); }
+.town-art > img { filter: saturate(.70) brightness(.89); }
+.app { background-color: #a7c8d4; }
+.app::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: rgba(24, 31, 58, .055);
+}
+@media (prefers-contrast: more) {
+  .app::after { display: none; }
+}
