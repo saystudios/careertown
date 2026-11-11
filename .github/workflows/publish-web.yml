@@ -1,0 +1,52 @@
+name: Publish CareerTown web game
+
+on:
+  push:
+    branches: [source]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: careertown-publish-web
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout CareerTown source
+        uses: actions/checkout@v4
+        with:
+          ref: source
+          fetch-depth: 0
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build web game
+        run: npm run build
+
+      - name: Publish built files to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git worktree add -B main ../careertown-published origin/main
+          rsync -a dist/ ../careertown-published/
+          cd ../careertown-published
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Already up to date"
+          else
+            git commit -m "Publish CareerTown web build from source"
+            git push origin main
+          fi
