@@ -1,4 +1,4 @@
-import type { PaperLook } from '../engine/types';
+import type { PaperLook, DollLook } from '../engine/types';
 import { PAPER_HAIR_COLOURS, PAPER_SKIN_TONES } from '../data/paperArt';
 
 /**
@@ -131,4 +131,29 @@ export function TownDoll({ p, face = 'happy', portrait = false }: { p: PaperLook
     <Hair style={p.hair} color={hairColor}/>
     <Extra p={p}/>
   </svg>;
+}
+
+/** Compatibility for older saved SVG dolls, including NPCs.
+ * Their clothes and hair remain editable through the original DollEditor,
+ * while the entire character now uses the same live vector body renderer.
+ */
+export function dollToTownLook(d: DollLook): PaperLook {
+  const names: Record<string,string> = {
+    long: 'long', wavy:'wavy', wavyboy:'messy', ponytail:'ponytail',
+    topbun:'lowbun', lowbun:'lowbun', buns:'spacebuns', bangs:'bobbangs',
+    sidepart:'sideswept', messy:'messy', spiky:'boyshort', swoop:'sideswept',
+    braids:'braids', pigtails:'braids', curly:'messy', bunnybob:'bob'
+  };
+  const hc = ['black','darkbrown','brown','blonde','ginger','pink'];
+  const hairColor = hc.includes(d.hairColor) ? d.hairColor : 'brown';
+  return {
+    base: d.adult ? 'adult':'kid',
+    tone: d.tone,
+    hair: d.hair ? names[d.hair] ?? d.hair : null,
+    hairColor,
+    top: d.top,
+    bottom: d.bottom,
+    shoes: d.shoes,
+    acc: {},
+  };
 }
