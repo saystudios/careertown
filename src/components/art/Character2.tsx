@@ -91,29 +91,18 @@ function HairFront({ l }: { l: Look }) {
 }
 
 function Eyes({ l, mood }: { l: Look; mood: Mood }) {
-  const X = [48.5, 71.5], y = CY + 8;
-  const lid = line(l.skin);
-  const arc = (x: number, up: boolean) => <path key={x} d={up ? `M${x - 5} ${y + 1} Q${x} ${y - 5.5} ${x + 5} ${y + 1}` : `M${x - 5} ${y - 0.5} Q${x} ${y + 4} ${x + 5} ${y - 0.5}`} fill="none" stroke="#3B2A2E" strokeWidth={2.2} strokeLinecap="round" />;
-  if (mood === 'sleep') return <g fill="none" stroke={lid} strokeWidth={2.2} strokeLinecap="round">{X.map((x) => <path key={x} d={`M${x - 5} ${y} Q${x} ${y + 4} ${x + 5} ${y}`} />)}</g>;
-  if (mood === 'happy' || mood === 'proud') return <g>{X.map((x) => arc(x, true))}</g>;
-  const eye = (x: number, i: number) => {
-    const wow = mood === 'wow';
-    const big = l.eyes === 'big';
-    const rx = wow ? 4.6 : l.eyes === 'dot' ? 3.2 : big ? 4.3 : 3.8;
-    const ry = wow ? 5.2 : l.eyes === 'dot' ? 3.6 : big ? 4.9 : 4.3;
-    const flat = l.eyes === 'sleepy';
-    return (
-      <g key={x}>
-        <ellipse cx={x} cy={y} rx={rx} ry={flat ? ry * 0.75 : ry} fill="#3B2A2E" />
-        <circle cx={x + rx * 0.32} cy={y - ry * 0.32} r={rx * 0.42} fill="#fff" />
-        <circle cx={x - rx * 0.4} cy={y + ry * 0.38} r={rx * 0.17} fill="#fff" opacity={0.9} />
-        {l.eyes === 'lashes' && <path d={i === 0 ? `M${x - rx + 0.3} ${y - ry + 1.4} l-2.2 -1.6` : `M${x + rx - 0.3} ${y - ry + 1.4} l2.2 -1.6`} stroke="#3B2A2E" strokeWidth={1.5} strokeLinecap="round" />}
-        {flat && <path d={`M${x - rx - 0.5} ${y - ry * 0.4} L${x + rx + 0.5} ${y - ry * 0.4}`} stroke={l.skin} strokeWidth={2.4} />}
-      </g>
-    );
-  };
-  if (mood === 'wink') return <g>{eye(X[0], 0)}{arc(X[1], true)}</g>;
-  return <g>{X.map((x, i) => eye(x, i))}</g>;
+  const spots = [49, 71], y = CY + 8;
+  const ink = '#34283B';
+  const arch = (x: number) => <path key={x} d={`M${x-5} ${y+1}Q${x} ${y-5} ${x+5} ${y+1}`} stroke={ink} strokeWidth={2.6} fill="none" strokeLinecap="round"/>;
+  const open = (x: number, i: number) => (
+    <g key={i}>
+      <ellipse cx={x} cy={y} rx={l.eyes === 'dot' ? 3.1 : 4.4} ry={l.eyes === 'sleepy' ? 3.8 : 5.5} fill={ink}/>
+      <ellipse cx={x-1.4} cy={y-2.4} rx={1.1} ry={1.4} fill="#FFF9F8"/>
+      {l.eyes === 'lashes' && <path d={`M${x-4} ${y-3}l-2 -2`} stroke={ink} strokeWidth={1.8} strokeLinecap="round"/>}
+    </g>);
+  if (mood === 'sleep' || mood === 'happy' || mood === 'proud') return <g>{spots.map(arch)}</g>;
+  if (mood === 'wink' || mood === 'silly') return <g>{open(spots[0],0)}{arch(spots[1])}</g>;
+  return <g>{spots.map(open)}</g>;
 }
 
 function Brows({ l, mood }: { l: Look; mood: Mood }) {
@@ -125,18 +114,13 @@ function Brows({ l, mood }: { l: Look; mood: Mood }) {
 }
 
 function Mouth({ l, mood }: { l: Look; mood: Mood }) {
-  const y = CY + 17;
-  const m = shade(l.skin, -60);
-  switch (mood) {
-    case 'eat': return <ellipse cx={60} cy={y + 0.5} rx={3.6} ry={3.2} fill="#7A2E46" className="chomp" />;
-    case 'brush': return <rect x={54.5} y={y - 2.5} width={11} height={5.5} rx={2.6} fill="#fff" stroke={m} strokeWidth={1.4} />;
-    case 'wow': return <ellipse cx={60} cy={y + 1} rx={2.6} ry={3.4} fill="#7A2E46" />;
-    case 'sad': return <path d={`M56.5 ${y + 2} Q60 ${y - 1.5} 63.5 ${y + 2}`} fill="none" stroke={m} strokeWidth={1.9} strokeLinecap="round" />;
-    case 'happy': case 'proud': return <path d={`M56.5 ${y - 1} Q60 ${y + 4.5} 63.5 ${y - 1} Z`} fill="#7A2E46" stroke={m} strokeWidth={1.4} strokeLinejoin="round" />;
-    case 'sleep': return <ellipse cx={60} cy={y + 1} rx={1.8} ry={1.4} fill={m} />;
-    case 'wink': return <path d={`M55.5 ${y - 0.5} Q60 ${y + 4.5} 64.5 ${y - 0.5}`} fill="none" stroke={m} strokeWidth={1.9} strokeLinecap="round" />;
-    case 'silly': return <g><path d={`M55.5 ${y - 1} Q60 ${y + 3} 64.5 ${y - 1}`} fill="none" stroke={m} strokeWidth={1.9} strokeLinecap="round" /><path d={`M58 ${y + 0.6} Q58 ${y + 6} 60.5 ${y + 6} Q63 ${y + 6} 62.6 ${y + 0.8}Z`} fill="#FF7D9C" stroke={m} strokeWidth={1.2} /></g>;
-    default: return <path d={`M57.6 ${y} Q58.8 ${y + 2.2} 60 ${y} Q61.2 ${y + 2.2} 62.4 ${y}`} fill="none" stroke={m} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />;
+  const y = CY + 17, ink = '#673947';
+  switch(mood) {
+    case 'eat': case 'wow': return <ellipse cx={60} cy={y} rx={3.2} ry={4.2} fill={ink}/>;
+    case 'sad': case 'grumpy': return <path d={`M55 ${y+2}Q60 ${y-2} 65 ${y+2}`} fill="none" stroke={ink} strokeWidth={2.4} strokeLinecap="round"/>;
+    case 'sleep': return <path d={`M57 ${y}Q60 ${y+2} 63 ${y}`} fill="none" stroke={ink} strokeWidth={2.1} strokeLinecap="round"/>;
+    case 'silly': return <g><path d={`M55 ${y-1}Q60 ${y+5} 65 ${y-1}`} fill="none" stroke={ink} strokeWidth={2.3}/><ellipse cx={61} cy={y+4} rx={2.5} ry={3} fill="#E88AA5"/></g>;
+    default: return <path d={`M54 ${y-2}Q60 ${y+9} 66 ${y-2}Z`} stroke={ink} strokeWidth={1.8} fill={mood === 'normal' || mood === 'wink' ? 'none' : ink}/>;
   }
 }
 
