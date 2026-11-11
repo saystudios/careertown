@@ -2,8 +2,9 @@ import { useId, useMemo } from 'react';
 import type { DollLook } from '../engine/types';
 import type { Face } from '../data/sprites';
 import { DOLL_PAD, DOLL_W, dollHeight } from '../data/doll';
-import { ART_DEFS, ART_BODY, ART_HEAD, ART_TEE, ART_SHORTS, ART_FACES, ART_HAIR, ART_GARMENTS, ART_ADULT_BODY, ART_ADULT_TEE, ART_ADULT_SHORTS, ART_ADULT_GARMENTS } from '../data/dollArt';
+import { ART_DEFS, ART_BODY, ART_HEAD, ART_TEE, ART_SHORTS, ART_HAIR, ART_GARMENTS, ART_ADULT_BODY, ART_ADULT_TEE, ART_ADULT_SHORTS, ART_ADULT_GARMENTS } from '../data/dollArt';
 import { SKIN_SWATCH, HAIR_TINTS, EYE_TINTS, BASIC_TINTS } from '../data/dollLooks';
+import { toonFaceSvg } from '../data/toonFaces';
 
 /* ── colours ── */
 function rgb(hex: string): [number, number, number] {
@@ -69,9 +70,8 @@ export function DollHead({ d, face, mood }: { d: DollLook; face: Face; mood?: st
   const expr = exprFor(face, mood);
   const markup = useMemo(() => {
     const c = colours(d, uid);
-    const faces = ART_FACES[d.face] ?? ART_FACES.girl;
     const hair = d.hair ? ART_HAIR[d.hair] : undefined;
-    return paint(ART_DEFS + ART_HEAD + (faces[expr] ?? faces.happy) + (hair?.front ?? ''), c);
+    return paint(ART_DEFS + ART_HEAD + toonFaceSvg(expr, d.face === 'girl') + (hair?.front ?? ''), c);
   }, [d, uid, expr]);
   return <Layer markup={markup} className="layered-head" adult={d.adult} />;
 }
