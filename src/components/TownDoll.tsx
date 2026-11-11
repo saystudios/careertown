@@ -24,42 +24,58 @@ function fillFor(id: string | null, fallback: string): string {
   return fallback;
 }
 
-function Hair({ style, color }: { style: string | null; color: string }) {
+/** The hair behind the face is a separate layer: it cannot hide eyes or cheeks. */
+function HairBack({ style, color }: { style: string | null; color: string }) {
+  if (!style) return null;
+  const base = { ...stroke, fill: color };
+  const long = /long|wavy|waves|braids|locs|ponytail|momwaves/.test(style);
+  const braids = /braids/.test(style);
+  const pony = /ponytail/.test(style);
+  const buns = /bun|topknot/.test(style);
+  return <g>
+    {long && <path d="M116 136Q100 198 110 290Q127 309 145 289L216 289Q232 307 249 289Q260 198 244 136Z" {...base}/>}
+    {braids && <g fill={color} {...stroke}><path d="M115 164Q92 209 113 288L131 299Q128 209 136 164Z"/><path d="M225 164Q234 208 230 298L247 288Q267 204 245 164Z"/></g>}
+    {pony && <path d="M241 109Q297 123 275 218Q263 249 250 227Q263 167 231 137Z" {...base}/>}
+    {buns && <g fill={color} {...stroke}>
+      {/spacebun/.test(style) ? <><circle cx="121" cy="105" r="27"/><circle cx="239" cy="105" r="27"/></>
+        : <circle cx="180" cy="65" r="31"/>}
+    </g>}
+  </g>;
+}
+
+/** Forehead-only caps, bangs and hair accessories. Nothing reaches the eyes (y=177). */
+function HairFront({ style, color }: { style: string | null; color: string }) {
   if (!style) return null;
   const base = { ...stroke, fill: color };
   const curls = /waves|wavy|curly|momwaves|messy|locs/.test(style);
-  const bangs = /bob|bang|boyshort|dadshort|sleek|messy/.test(style);
-  const long = /long|wavy|waves|braids|locs|ponytail|momwaves/.test(style);
-  const pigtails = /braids|spacebuns/.test(style);
-  const bun = /bun|topknot|spacebun/.test(style);
-  const side = /sideswept|boyshort|dadshort|messy/.test(style);
+  const bob = /bob|bang|sleek/.test(style);
+  const short = /sideswept|short|messy|dadshort|boyshort/.test(style);
+  const scalp = curls
+    ? 'M109 143Q93 115 112 92Q115 67 142 72Q161 49 180 67Q205 47 220 72Q249 68 254 99Q270 120 251 148Q234 137 220 144Q197 126 181 139Q159 126 141 146Q120 136 109 149Z'
+    : short
+      ? 'M110 146Q100 103 132 83Q178 58 218 78Q253 96 250 149Q236 136 224 136Q209 138 195 125Q172 143 146 137Q126 148 110 146Z'
+      : 'M110 147Q101 95 141 76Q181 56 221 78Q261 98 250 150Q234 139 222 140Q204 130 189 134Q169 143 150 136Q126 152 110 147Z';
   return <g>
-    {long && <path d="M116 134 Q102 205 108 292 Q126 312 144 291 L215 291 Q234 311 251 290 Q254 195 244 135Z" {...base}/>}
-    {pigtails && <g fill={color} {...stroke}><ellipse cx="104" cy="165" rx="22" ry="37"/><ellipse cx="256" cy="165" rx="22" ry="37"/></g>}
-    {bun && <g fill={color} {...stroke}><circle cx={180} cy={62} r={32}/>{/spacebun/.test(style) && <><circle cx="115" cy="100" r="27"/><circle cx="245" cy="100" r="27"/></>}</g>}
-    <path d={curls
-      ? "M105 146 Q91 116 106 101 Q96 70 129 74 Q144 47 165 63 Q185 42 203 65 Q230 47 241 80 Q267 81 260 116 Q270 142 254 158 L244 169 Q233 147 224 151 Q209 137 194 151 Q178 135 164 153 Q145 135 133 157 Q118 148 105 165Z"
-      : side
-        ? "M106 162 Q94 96 138 79 Q184 45 227 78 Q264 102 254 166 Q249 143 231 129 Q202 138 185 120 Q166 150 106 162Z"
-        : bangs
-          ? "M103 164 Q94 80 158 71 Q219 58 254 109 L257 177 Q239 169 236 153 Q216 167 198 150 Q179 165 159 151 Q135 171 103 164Z"
-          : "M105 170 Q94 94 143 75 Q192 54 239 84 Q266 107 252 170 Q244 143 228 129 Q202 138 181 117 Q154 150 105 170Z"
-    } {...base}/>
-    {bangs && <path d="M118 124 Q134 143 150 127 M165 118 Q181 145 196 127 M212 117 Q226 139 244 129" stroke="#fff" strokeWidth="3" opacity=".19" fill="none"/>}
-    {curls && [113,139,164,190,217,240].map((x,i)=><circle key={i} cx={x} cy={91+(i%2)*7} r={15} fill={color} stroke={INK} strokeWidth="3"/>)}
-    {/ponytail/.test(style) && <g><path d="M243 98 Q307 130 266 236 Q250 245 252 216 Q272 153 231 131Z" {...base}/><circle cx="246" cy="116" r="11" fill="#DFA1C7" stroke={INK} strokeWidth="3"/></g>}
-    {/scrunchie|bow/.test(style) && <path d="M237 113l-23 -15v26z M240 113l24 -15v26z" fill="#E6A0B8" {...stroke}/>}
+    <path d={scalp} {...base}/>
+    {bob && <g fill={color} stroke={INK} strokeWidth="3">
+      <path d="M110 138Q105 158 119 169Q131 164 137 151L142 139Z"/>
+      <path d="M250 138Q256 158 241 169Q229 164 223 151L218 139Z"/>
+    </g>}
+    {curls && [118,141,166,192,217,240].map((x,i)=>
+      <circle key={x} cx={x} cy={101+(i%2)*7} r={12} fill={color} stroke={INK} strokeWidth="2.6"/>)}
+    {/scrunchie|bow/.test(style) && <g {...stroke} fill="#DFA6BD">
+      <path d="M234 113L215 100V125Z"/><path d="M239 113L259 100V125Z"/>
+      <circle cx="236" cy="113" r="5"/>
+    </g>}
   </g>;
 }
 
 function Face({ face }: { face: string }) {
   const close = (x: number) => <path key={x} d={`M${x-12} 179 Q${x} 164 ${x+12} 179`} fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round"/>;
-  const open = (x: number) => <g key={x}><ellipse cx={x} cy={177} rx="9" ry="12.5" fill={INK}/><circle cx={x-3} cy={172} r="3.5" fill="#fff"/></g>;
+  const open = (x: number) => <g key={x}><ellipse cx={x} cy={177} rx="8" ry="11" fill={INK}/><circle cx={x-3} cy={172} r="3.5" fill="#fff"/></g>;
   const expression = face === 'laughing' || face === 'giggle' ? 'laugh'
     : face === 'surprised' || face === 'shocked' ? 'wow' : face;
   return <g>
-    <ellipse cx="125" cy="202" rx="17" ry="9" fill="#E89EA0" opacity=".55"/>
-    <ellipse cx="235" cy="202" rx="17" ry="9" fill="#E89EA0" opacity=".55"/>
     {expression==='laugh' || expression==='crying' ? <>{close(148)}{close(212)}</>
       : expression==='wink' || expression==='silly' ? <>{open(148)}{close(212)}</>
         : <>{open(148)}{open(212)}</>}
@@ -122,13 +138,18 @@ export function TownDoll({ p, face = 'happy', portrait = false }: { p: PaperLook
   return <svg viewBox={portrait ? "95 52 170 219" : "55 22 250 542"} width="100%" height="100%" preserveAspectRatio="xMidYMid meet"
     role="img" aria-label="Customizable CareerTown character" style={{ overflow: 'visible' }}>
     <Outfit p={p} skin={skin}/>
-    {/* Round head, small features; no baked-in raster hair or clothing. */}
+    {/* Layer order matters: long hair BEHIND the head; fringe ABOVE the forehead only. */}
+    <HairBack style={p.hair} color={hairColor}/>
     <rect x="168" y="227" width="24" height="44" rx="11" fill={skin} {...stroke}/>
-    <path d="M112 142Q113 94 180 89Q247 93 248 142L251 190Q247 242 181 250Q113 244 109 190Z" fill={skin} {...stroke}/>
-    <ellipse cx="109" cy="187" rx="11" ry="19" fill={skin} {...stroke}/>
-    <ellipse cx="251" cy="187" rx="11" ry="19" fill={skin} {...stroke}/>
+    <path
+      d={p.hair
+        ? "M112 142Q113 94 180 89Q247 93 248 142L251 190Q247 242 181 250Q113 244 109 190Z"
+        : "M117 141Q119 97 180 91Q241 97 243 141L246 190Q242 239 181 246Q119 240 114 190Z"}
+      fill={skin} {...stroke}/>
+    <ellipse cx={p.hair ? 109 : 115} cy="187" rx="10" ry="18" fill={skin} {...stroke}/>
+    <ellipse cx={p.hair ? 251 : 245} cy="187" rx="10" ry="18" fill={skin} {...stroke}/>
     <Face face={face}/>
-    <Hair style={p.hair} color={hairColor}/>
+    <HairFront style={p.hair} color={hairColor}/>
     <Extra p={p}/>
   </svg>;
 }
