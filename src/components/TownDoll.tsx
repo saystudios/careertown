@@ -116,10 +116,10 @@ function Extra({ p }: { p: PaperLook }) {
 }
 
 /** Fits the existing rectangular paper character slot without changing layout. */
-export function TownDoll({ p, face = 'happy' }: { p: PaperLook; face?: string }) {
+export function TownDoll({ p, face = 'happy', portrait = false }: { p: PaperLook; face?: string; portrait?: boolean }) {
   const skin = PAPER_SKIN_TONES[Math.max(0,Math.min(3,p.tone|0))] ?? PAPER_SKIN_TONES[0];
   const hairColor = PAPER_HAIR_COLOURS[p.hairColor] ?? '#41323A';
-  return <svg viewBox="55 22 250 542" width="100%" height="100%" preserveAspectRatio="xMidYMid meet"
+  return <svg viewBox={portrait ? "95 52 170 219" : "55 22 250 542"} width="100%" height="100%" preserveAspectRatio="xMidYMid meet"
     role="img" aria-label="Customizable CareerTown character" style={{ overflow: 'visible' }}>
     <Outfit p={p} skin={skin}/>
     {/* Round head, small features; no baked-in raster hair or clothing. */}
