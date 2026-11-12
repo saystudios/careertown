@@ -2,12 +2,11 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { BUILDINGS, type BuildingDef } from '../data/buildings';
 import { useGame } from '../engine/store';
 import townArt from '../assets/town/calm-map.svg';
-import balloonArt from '../assets/town/balloon.webp';
 import { Person, PetPic } from '../components/Person';
 import { sfx } from '../engine/sfx';
 import type { BuildingId } from '../engine/types';
 import { TOWNFOLK } from '../data/townfolk';
-import { TownWalkers, DayNight, PhaseButton } from '../components/TownLife';
+import { DayNight, PhaseButton } from '../components/TownLife';
 import { useDayPhase } from '../engine/dayPhase';
 
 /** Where each building sits in the painted town picture (px in a 1536 × 1024 image): [x, y, w, h]. */
@@ -48,8 +47,6 @@ export function TownMap({ onEnter, onVisit, }: { onEnter: (id: BuildingId) => vo
   const walker = game.characters.find((c) => c.id === game.activeCharacterId) ?? game.characters[0];
   const pet = game.pets[0];
   const phase = useDayPhase();
-  const strollers = game.characters.filter((c) => c.id !== walker?.id).slice(0, 1);
-  const highlightedMissions = BUILDINGS.filter((b) => (b.playable || TOWNFOLK[b.id]) && b.missions.some((m) => !game.completedMissions[m])).slice(0, 3).map((b) => b.id);
   useEffect(() => { if (phase === 'night' && !game.owned.includes('did:night')) dispatch({ type: 'OWN', id: 'did:night' }); }, [phase, game.owned, dispatch]);
 
   const movePlayer = (event: MouseEvent<HTMLDivElement>) => {
@@ -74,14 +71,8 @@ export function TownMap({ onEnter, onVisit, }: { onEnter: (id: BuildingId) => vo
     <>
     <PhaseButton phase={phase} />
     <div ref={scroller} className="map-scroll h-full w-full overflow-auto">
-      <div className="town town-full town-art relative overflow-hidden select-none" onClick={movePlayer} aria-label="Town map: tap a clear space to move your character">
-        <img src={townArt} alt="" draggable={false} className="absolute inset-0 w-full h-full" style={{ objectFit: 'fill' }} />
-
-        {/* the hot-air balloon drifts across the sky and hides a secret */}
-        <button aria-label="Hot air balloon" className="balloon absolute" style={{ zIndex: 20, top: '9%', width: '5%', aspectRatio: '76 / 96' }}
-          onClick={() => { if (!game.secrets.includes('balloon')) { sfx('sparkle'); dispatch({ type: 'FIND_SECRET', id: 'balloon' }); } else { sfx('pop'); dispatch({ type: 'TOAST', text: 'Wheee! The balloon waves at you.' }); } }}>
-          <img src={balloonArt} alt="" draggable={false} className="w-full h-full" style={{ pointerEvents: 'none' }} />
-        </button>
+      <div className="town town-full town-art calm-town relative overflow-hidden select-none" onClick={movePlayer} aria-label="Town map: tap a clear space to move your character">
+        <img src={townArt} alt="Simplified CareerTown map with 17 easy-to-find locations" draggable={false} className="absolute inset-0 w-full h-full pointer-events-none" style={{ objectFit: 'fill', filter: 'none' }} />
 
         {/* walker + pet on the top sidewalk */}
         {walker && (
@@ -103,18 +94,14 @@ export function TownMap({ onEnter, onVisit, }: { onEnter: (id: BuildingId) => vo
             <button key={b.id} onClick={() => tap(b)} aria-label={b.playable || TOWNFOLK[b.id] ? `Enter ${b.name}` : `${b.name}, coming soon`}
               className={`building art-building absolute ${b.playable || TOWNFOLK[b.id] ? '' : 'soon'} ${bump === b.id ? 'bump' : ''}`}
               style={{ left: px(x, IMG_W), top: px(y, IMG_H), width: px(w, IMG_W), height: px(h, IMG_H) }}>
-              {/* the building's own piece of the picture, so it can bounce when tapped */}
-              <span className="art-crop absolute inset-0" style={{ backgroundImage: `url(${townArt})`, backgroundSize: `${(IMG_W / w) * 100}% ${(IMG_H / h) * 100}%`, backgroundPosition: `${(x / (IMG_W - w)) * 100}% ${(y / (IMG_H - h)) * 100}%` }} />
               {!PAINTED_LABELS && <span className="sign absolute left-1/2 -translate-x-1/2 w-max leading-tight text-center rounded-2xl border-ink bg-white font-display font-bold text-ink shadow-chunkysm"
-                style={{ bottom: '-6%', fontSize: '1.25cqw', padding: '0.15cqw 0.8cqw', borderWidth: '0.22cqw', borderStyle: 'solid', borderRadius: '1cqw' }}>
+                style={{ bottom: '-6%', fontSize: '1.25cqw', padding: '0.23cqw 0.7cqw', borderWidth: '0.16cqw', borderStyle: 'solid', borderRadius: '1cqw', background: '#fffaf3', whiteSpace: 'nowrap' }}>
                 {b.icon} {b.name}
               </span>}
               {!b.playable && !TOWNFOLK[b.id] && <span className="absolute rounded-full border-ink bg-lilac text-white font-display font-bold rotate-6" style={{ top: '6%', right: '4%', fontSize: '1.2cqw', padding: '0 0.8cqw', borderWidth: '0.22cqw', borderStyle: 'solid' }}>Soon</span>}
-              {(b.playable || TOWNFOLK[b.id]) && b.missions.some((m) => !game.completedMissions[m]) && <span className="mission-dot absolute rounded-full bg-berry border-ink grid place-items-center text-white font-display font-extrabold" style={{ top: '6%', left: '6%', width: '2.4cqw', height: '2.4cqw', fontSize: '1.5cqw', borderWidth: '0.22cqw', borderStyle: 'solid' }}>!</span>}
             </button>
           );
         })}
-        <TownWalkers people={strollers} night={phase === 'night'} />
         <DayNight phase={phase} />
       </div>
     </div>
