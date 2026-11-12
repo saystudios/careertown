@@ -187,7 +187,6 @@ export type Action =
   | { type: 'TOGGLE_SOUND' }
   | { type: 'TOGGLE_MUSIC' }
   | { type: 'SET_BREAK'; mins: number }
-  | { type: 'SET_PLAYDATES'; on: boolean }
   | { type: 'TOGGLE_PET_FOLLOW' }
   | { type: 'NEW_DAY'; date: string }
   | { type: 'STICKER'; id: string }
@@ -341,7 +340,6 @@ export function reducer(root: Root, a: Action): Root {
       return { ...root, game: { ...g, coins: g.coins - a.price, owned: [...g.owned, a.id] }, toast: { id: uid('t'), text: 'Bought! Find it in your stuff.' } };
     }
     case 'SET_PET': return { ...root, game: { ...g, pets: g.pets.map((p) => (p.id === a.pet.id ? a.pet : p)) } };
-    case 'SET_PLAYDATES': return { ...root, game: { ...g, settings: { ...g.settings, playdates: a.on } } };
     case 'SET_BREAK': return { ...root, game: { ...g, settings: { ...g.settings, breakMins: a.mins } } };
     case 'TOGGLE_MUSIC': return { ...root, game: { ...g, settings: { ...g.settings, music: g.settings.music === false } } };
     case 'TOGGLE_PET_FOLLOW': return { ...root, game: { ...g, settings: { ...g.settings, petFollow: g.settings.petFollow === false } } };

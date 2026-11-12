@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { BUILDINGS, type BuildingDef } from '../data/buildings';
 import { useGame } from '../engine/store';
-import townArt from '../assets/town/town-map.webp';
+import townArt from '../assets/town/calm-map.svg';
 import balloonArt from '../assets/town/balloon.webp';
 import { Person, PetPic } from '../components/Person';
 import { sfx } from '../engine/sfx';
@@ -9,7 +9,6 @@ import type { BuildingId } from '../engine/types';
 import { TOWNFOLK } from '../data/townfolk';
 import { TownWalkers, DayNight, PhaseButton } from '../components/TownLife';
 import { useDayPhase } from '../engine/dayPhase';
-import { canNearby } from '../engine/nearby';
 
 /** Where each building sits in the painted town picture (px in a 1536 × 1024 image): [x, y, w, h]. */
 export const IMG_W = 1536, IMG_H = 1024;
@@ -33,12 +32,14 @@ export const SPOTS: Record<string, [number, number, number, number]> = {
   'nature-trail': [1180, 820, 330, 180],
 };
 /** The town picture has every place's name painted on it, so we don't draw our own signs. */
-const PAINTED_LABELS = true;
+const PAINTED_LABELS = false;
 const px = (v: number, of: number) => `${(v / of) * 100}%`;
 
-export function TownMap({ onEnter, onVisit, onPlaydate }: { onEnter: (id: BuildingId) => void; onVisit: (id: BuildingId) => void; onPlaydate?: () => void }) {
+export function TownMap({ onEnter, onVisit, }: { onEnter: (id: BuildingId) => void; onVisit: (id: BuildingId) => void; }) {
   const { game, dispatch } = useGame();
   const [bump, setBump] = useState<string | null>(null);
+  const [playerPos, setPlayerPos] = useState({ x: 46, y: 30 });
+  const [facingLeft, setFacingLeft] = useState(false);
   const scroller = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = scroller.current; if (!el) return;
@@ -47,8 +48,18 @@ export function TownMap({ onEnter, onVisit, onPlaydate }: { onEnter: (id: Buildi
   const walker = game.characters.find((c) => c.id === game.activeCharacterId) ?? game.characters[0];
   const pet = game.pets[0];
   const phase = useDayPhase();
-  const strollers = game.characters.filter((c) => c.id !== walker?.id);
+  const strollers = game.characters.filter((c) => c.id !== walker?.id).slice(0, 1);
+  const highlightedMissions = BUILDINGS.filter((b) => (b.playable || TOWNFOLK[b.id]) && b.missions.some((m) => !game.completedMissions[m])).slice(0, 3).map((b) => b.id);
   useEffect(() => { if (phase === 'night' && !game.owned.includes('did:night')) dispatch({ type: 'OWN', id: 'did:night' }); }, [phase, game.owned, dispatch]);
+
+  const movePlayer = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget && (event.target as Element).closest('button')) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = Math.min(94, Math.max(5, ((event.clientX - rect.left) / rect.width) * 100));
+    const y = Math.min(89, Math.max(15, ((event.clientY - rect.top) / rect.height) * 100));
+    setFacingLeft(x < playerPos.x);
+    setPlayerPos({ x, y });
+  };
 
   const tap = (b: BuildingDef) => {
     setBump(b.id);
@@ -62,9 +73,8 @@ export function TownMap({ onEnter, onVisit, onPlaydate }: { onEnter: (id: Buildi
   return (
     <>
     <PhaseButton phase={phase} />
-    {onPlaydate && canNearby() && <button onClick={() => { sfx('pop'); onPlaydate(); }} className="playdate-btn rounded-2xl border-[3px] border-ink bg-white shadow-chunkysm font-display font-bold text-ink">🤝 <span className="phase-label">Playdate</span></button>}
     <div ref={scroller} className="map-scroll h-full w-full overflow-auto">
-      <div className="town town-full town-art relative overflow-hidden select-none">
+      <div className="town town-full town-art relative overflow-hidden select-none" onClick={movePlayer} aria-label="Town map: tap a clear space to move your character">
         <img src={townArt} alt="" draggable={false} className="absolute inset-0 w-full h-full" style={{ objectFit: 'fill' }} />
 
         {/* the hot-air balloon drifts across the sky and hides a secret */}
@@ -75,9 +85,14 @@ export function TownMap({ onEnter, onVisit, onPlaydate }: { onEnter: (id: Buildi
 
         {/* walker + pet on the top sidewalk */}
         {walker && (
-          <div className="walker absolute pointer-events-none" style={{ zIndex: 10, top: "28.5%", width: "3.2%", height: "9.5%" }}>
-            <Person c={walker} mood="happy" />
-            {pet && <div className="absolute -right-[85%] bottom-0 w-[80%] h-[42%]"><PetPic p={pet} /></div>}
+          <div className="map-player absolute pointer-events-none" style={{
+            zIndex: 12, left: `${playerPos.x}%`, top: `${playerPos.y}%`, width: '4.5%',
+            height: '10.5%', transform: 'translate(-50%, -60%)', transition: 'left .8s ease-in-out, top .8s ease-in-out'
+          }}>
+            <div className="w-full h-full" style={{ transform: facingLeft ? 'scaleX(-1)' : undefined }}>
+              <Person c={walker} mood="happy" />
+            </div>
+            {pet && <div className="absolute -right-[70%] bottom-0 w-[65%] h-[34%]"><PetPic p={pet} /></div>}
           </div>
         )}
 

@@ -150,8 +150,9 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
   const playBounds = (): [number, number] => {
     const r = roomRef.current?.getBoundingClientRect(); const w = wrapRef.current?.getBoundingClientRect();
     if (!r || !w || !r.width) return [30, 970];
-    const extra = Math.max(0, ((w.width - r.width) / 2 / r.width) * ROOM_W);
-    return [30 - extra, 970 + extra];
+    // Restrict draggable people to the visible stage. Older saves sometimes
+    // stored a negative x outside the room, leaving the character unreachable.
+    return [65, 935];
   };
 
   const onDown = (e: Entity, ev: React.PointerEvent) => {
@@ -160,7 +161,7 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
     const p = toRoom(ev.clientX, ev.clientY);
     if (hold.current) window.clearTimeout(hold.current.t);
     hold.current = e.kind === 'character' ? { id: e.id, fired: false, t: window.setTimeout(() => { if (hold.current && !dragRef.current?.moved) { hold.current.fired = true; setFaceFor(e.id); sfx('pop'); } }, 550) } : null;
-    const pos = e.heldBy && byId.get(e.heldBy) ? handPos(byId.get(e.heldBy)!) : { x: e.x, y: e.y };
+    const pos = e.heldBy && byId.get(e.heldBy) ? handPos(byId.get(e.heldBy)!) : { x: e.kind === 'character' ? Math.max(65, Math.min(935, e.x)) : e.x, y: e.y };
     setDrag({
       id: e.id, ox: pos.x - p.x, oy: pos.y - p.y, sx: ev.clientX, sy: ev.clientY,
       x: pos.x, y: pos.y, orig: pos, moved: false, deps: dependentsOf(e.id, entities), overTrash: false,
@@ -495,7 +496,8 @@ export function Room({ sceneId, onCustomTap, onWardrobe, townNight = false, onEd
           const dragging = drag?.id === e.id && drag.moved;
           const depOffset = drag?.moved && drag.deps.has(e.id) ? { x: drag.x - drag.orig.x, y: drag.y - drag.orig.y } : { x: 0, y: 0 };
           const fixed = e.kind === 'item' && ITEMS[e.ref]?.fixed;
-          const x = anchor?.box ? anchor.box[0] + anchor.box[2] / 2 : (dragging && !fixed ? drag.x : e.x) + depOffset.x;
+          const rawX = anchor?.box ? anchor.box[0] + anchor.box[2] / 2 : (dragging && !fixed ? drag.x : e.x) + depOffset.x;
+          const x = e.kind === 'character' ? Math.max(s.w / 2 + 12, Math.min(ROOM_W - s.w / 2 - 12, rawX)) : rawX;
           const y = anchor?.box ? anchor.box[1] + anchor.box[3] : (dragging && !fixed ? drag.y : e.y) + depOffset.y;
           const held = e.holding ? byId.get(e.holding) : undefined;
           const isEmoji = e.kind === 'item' && !!ITEMS[e.ref]?.emoji;
