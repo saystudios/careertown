@@ -129,6 +129,13 @@ No free-text sharing, no multiplayer, no external links, no ads, no outside requ
 Character names stay on device. Medical, legal and cooking content is pretend, simple and clearly
 framed as play (with "ask a grown-up" notes where it matters).
 
+## K-pop Training Academy rooms
+Free play at the K-pop Training Academy is a 4-room building you swipe across: Dance studio, Recording booth,
+Dressing room (its dressing table opens the Dress-Up Studio) and Stage. Luna and the trainees stay in the dance
+studio. The booth, dressing room and stage backgrounds are drawn by `tools/rooms/kpop_rooms.py` (run it, then
+`node render.cjs`, and save the PNGs as `src/assets/rooms/kpop-*.webp`); a painted 1920 x 840 picture can replace
+any of them at the same path (the room is the middle 1200 px; the floor starts about 564 px down).
+
 ## Dress-Up Studio
 - `src/scenes/DressUpStudio.tsx`: the screen. `src/data/wardrobe.ts`: every YunaVerse piece as a wardrobe item
   (stable id like `top:pink-hoodie`, category, bodies it fits, render layer, placement per body, what it conflicts

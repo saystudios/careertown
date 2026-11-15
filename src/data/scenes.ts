@@ -8,6 +8,9 @@ import artHospital from '../assets/rooms/hospital-exam.webp';
 import artCourt from '../assets/rooms/courthouse-room.webp';
 import artEngineering from '../assets/rooms/engineering-lab.webp';
 import artKpop from '../assets/rooms/kpop-studio.webp';
+import artKpopBooth from '../assets/rooms/kpop-booth.webp';
+import artKpopDressing from '../assets/rooms/kpop-dressing.webp';
+import artKpopStage from '../assets/rooms/kpop-stage.webp';
 import artVet from '../assets/rooms/vet-clinic.webp';
 
 export interface SceneDef {
@@ -49,6 +52,10 @@ export const SCENES: Record<SceneId, SceneDef> = {
   'shop-floor': { id: 'shop-floor', label: 'Clothes shop', wall: '#FFE0F0', wallPattern: 'dots', floor: '#F6E8F0', floorPattern: 'tiles', horizon: 450 },
   'bank-hall': { id: 'bank-hall', label: 'Bank', wall: '#EEF0F6', wallPattern: 'panels', floor: '#D9D2C3', floorPattern: 'checker', horizon: 450 },
   'kpop-studio': { id: 'kpop-studio', label: 'Dance studio', wall: '#F3DDFF', wallPattern: 'plain', floor: '#E8B47E', floorPattern: 'boards', horizon: 470, art: artKpop },
+  // K-pop Academy rooms added Oct 2026 (art drawn by tools/rooms/kpop_rooms.py; swap in painted art at the same paths any time)
+  'kpop-booth': { id: 'kpop-booth', label: 'Recording booth', wall: '#D2BEEF', wallPattern: 'plain', floor: '#6E5B90', floorPattern: 'boards', horizon: 470, art: artKpopBooth },
+  'kpop-dressing': { id: 'kpop-dressing', label: 'Dressing room', wall: '#FFD9EA', wallPattern: 'stripes', floor: '#FBE6F0', floorPattern: 'checker', horizon: 470, art: artKpopDressing },
+  'kpop-stage': { id: 'kpop-stage', label: 'Stage', wall: '#2E1D60', wallPattern: 'plain', floor: '#4A2F7C', floorPattern: 'boards', horizon: 470, art: artKpopStage },
   'engineering-lab': { id: 'engineering-lab', label: 'Workshop', wall: '#D8EEFF', wallPattern: 'grid', floor: '#9AA6B8', floorPattern: 'checker', horizon: 450, art: artEngineering, anchors: { window: { box: [300, 130, 300, 240], hide: true } } },
 };
 
@@ -207,6 +214,15 @@ function baseScene(id: SceneId): Entity[] {
       ];
     case 'kpop-studio':
       return [it('kp-mic', 380, 690), it('kp-lightstick', 520, 690), it('kp-trophy', 660, 690), it('kp-folder', 240, 690), it('guitar', 800, 690), it('drum', 900, 690), it('kp-bottle', 120, 690)];
+    case 'kpop-booth':
+      return [it('kp-mic', 500, 640), it('stool', 560, 650), it('headset', 640, 690), it('keyboard', 380, 690), it('beanbag', 150, 680),
+        it('starlamp', 900, 620), it('guitar', 820, 695), it('propbox', 210, 705)];
+    case 'kpop-dressing':
+      return [it('vanity', 300, 640), it('stool', 300, 670), it('armchair', 820, 650), it('kp-bunny', 900, 700), it('dress', 560, 690),
+        it('handbag', 660, 700), it('tshirt', 470, 700), it('kp-bottle', 120, 700)];
+    case 'kpop-stage':
+      return [it('kp-mic', 500, 650), it('kp-lightstick', 380, 690), it('kp-lightstick', 620, 690), it('drum', 180, 680), it('guitar', 820, 690),
+        it('piano', 940, 620), it('kp-trophy', 700, 700), it('propbox', 80, 705)];
     case 'engineering-lab': {
       const bench = it('workbench', 300, 570);
       return [

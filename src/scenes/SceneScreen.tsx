@@ -133,7 +133,7 @@ export function SceneScreen({ sceneId: startScene, onMission, onStudio }: { scen
             <Room sceneId={r.sceneId} townNight={night} onWardrobe={(id) => (onStudio ? window.setTimeout(() => onStudio(id, r.sceneId), 300) : setWardrobe(id))} onCustomTap={(e) => (e.ref === 'chalkboard' || e.ref === 'easel') && setDrawOn(e)}
               onEdge={onEdge} onCross={multi ? onCross(r.sceneId) : undefined} onSnapshot={snapshot}
               onMovedTo={(to) => { if (b.rooms.some((x) => x.sceneId === to)) { centre(to, true); setCur(to); } }} />
-            {multi ? <span className="room-sign">{r.icon} {SCENES[r.sceneId].label}</span> : <><Worker building={b.id} /><Visitors building={b.id} /></>}
+            {multi ? <><span className="room-sign">{r.icon} {SCENES[r.sceneId].label}</span>{r.sceneId === b.rooms[0].sceneId && <><Worker building={b.id} /><Visitors building={b.id} /></>}</> : <><Worker building={b.id} /><Visitors building={b.id} /></>}
           </div>
         ))}
       </div>
@@ -204,7 +204,6 @@ export function SceneScreen({ sceneId: startScene, onMission, onStudio }: { scen
         </div>
       )}
 
-      {multi && <><Worker building={b.id} /><Visitors building={b.id} /></>}
       {undo && <button className="undo-btn" onClick={doUndo}>↩️ Undo</button>}
       {photo && <PhotoMode title={b.rooms.find((r) => r.sceneId === sceneId)?.label ?? b.name} onClose={() => setPhoto(false)} />}
 
