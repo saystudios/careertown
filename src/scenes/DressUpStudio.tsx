@@ -43,6 +43,8 @@ export function DressUpStudio({ characterId, onBack, onEdit }: { characterId?: s
   const [selId, setSelId] = useState(characterId ?? game.activeCharacterId ?? game.characters[0]?.id);
   const [tab, setTab] = useState<Tab>('hair');
   const [history, setHistory] = useState<Record<string, Snapshot[]>>({});
+  const [future, setFuture] = useState<Record<string, Snapshot[]>>({});
+  const [seen, setSeen] = useState<Set<Tab>>(() => loadSeenTabs());
   const [pets, setPets] = useState(false);
   const [bump, setBump] = useState(0);
   const hasPack = useOwned(STYLE_PACK.productId);
@@ -50,10 +52,13 @@ export function DressUpStudio({ characterId, onBack, onEdit }: { characterId?: s
   if (!c) return null;
   const p = c.paper;
   const undo = history[c.id] ?? [];
+  const redo = future[c.id] ?? [];
+  const now = (): Snapshot => ({ paper: c.paper, expression: c.expression });
 
   /** Save a change for this character, remembering the old look for Undo. */
   const commit = (next: CharacterData, sound: 'pop' | 'sparkle' | 'success' = 'pop') => {
-    setHistory((h) => ({ ...h, [c.id]: [...(h[c.id] ?? []), { paper: c.paper, expression: c.expression }].slice(-MAX_UNDO) }));
+    setHistory((h) => ({ ...h, [c.id]: [...(h[c.id] ?? []), now()].slice(-MAX_UNDO) }));
+    setFuture((f) => ({ ...f, [c.id]: [] }));   // a new change clears Redo
     dispatch({ type: 'SAVE_CHARACTER', character: next });
     dispatch({ type: 'EVENT', name: 'dress' });
     setBump((b) => b + 1);
@@ -63,8 +68,20 @@ export function DressUpStudio({ characterId, onBack, onEdit }: { characterId?: s
   const doUndo = () => {
     const last = undo[undo.length - 1]; if (!last) return;
     setHistory((h) => ({ ...h, [c.id]: undo.slice(0, -1) }));
+    setFuture((f) => ({ ...f, [c.id]: [...redo, now()].slice(-MAX_UNDO) }));
     dispatch({ type: 'SAVE_CHARACTER', character: { ...c, paper: last.paper, expression: last.expression } });
     setBump((b) => b + 1); sfx('whoosh');
+  };
+  const doRedo = () => {
+    const next = redo[redo.length - 1]; if (!next) return;
+    setFuture((f) => ({ ...f, [c.id]: redo.slice(0, -1) }));
+    setHistory((h) => ({ ...h, [c.id]: [...undo, now()].slice(-MAX_UNDO) }));
+    dispatch({ type: 'SAVE_CHARACTER', character: { ...c, paper: next.paper, expression: next.expression } });
+    setBump((b) => b + 1); sfx('whoosh');
+  };
+  const openTab = (t: Tab) => {
+    sfx('tap'); setTab(t);
+    if (!seen.has(t)) { const next = new Set(seen).add(t); setSeen(next); saveSeenTabs(next); }
   };
   const doReset = () => {
     const d = defaultLookOf(c);
@@ -81,7 +98,7 @@ export function DressUpStudio({ characterId, onBack, onEdit }: { characterId?: s
   return (
     <div className="ds" role="main" aria-label="Dress-Up Studio">
       <header className="ds-top">
-        <Btn tone="white" onClick={onBack} aria-label="Back" className="ds-back">⬅<span className="ds-hide-sm">Back</span></Btn>
+        <button className="ds-round-back" onClick={onBack} aria-label="Back"><BackArrow /></button>
         <h1 className="ds-title"><span aria-hidden>👗</span> {c.name}</h1>
         <div className="ds-top-right">
           {game.pets.length > 0 && <Btn tone="mint" onClick={() => setPets(true)} aria-label="Pet closet">🐾<span className="ds-hide-sm">Pets</span></Btn>}
@@ -103,14 +120,19 @@ export function DressUpStudio({ characterId, onBack, onEdit }: { characterId?: s
 
         {/* the big mirror */}
         <section className="ds-stage" aria-label={`${c.name} preview`}>
-          <div className="ds-mirror">
-            <div className="ds-floor" aria-hidden />
+          <div className="ds-mirror ds-fitting">
+            <FittingRoom />
             <Fit aspect={p ? PAPER_BASES[p.base].canvas[2] / PAPER_BASES[p.base].canvas[3] : 0.46}>
               <div key={bump} className="ds-char">
                 <div className="ds-idle">{p ? <PaperArt p={p} face={isExpression(c.expression) ? c.expression : 'happy'} /> : <Person c={c} mood="normal" />}</div>
               </div>
             </Fit>
             <Btn tone="white" className="ds-edit" onClick={() => onEdit(c.id)} aria-label={`Change ${c.name}’s name, skin and body`}>✏️</Btn>
+            <Podium />
+          </div>
+          <div className="ds-undo-row">
+            <button className="ds-round ds-undo" onClick={doUndo} disabled={!undo.length} aria-label="Undo"><UndoArrow /></button>
+            <button className="ds-round ds-redo" onClick={doRedo} disabled={!redo.length} aria-label="Redo"><UndoArrow flip /></button>
           </div>
           <div className="ds-faces" role="group" aria-label="Faces">
             {EXPRESSIONS.map((e) => {
@@ -122,7 +144,6 @@ export function DressUpStudio({ characterId, onBack, onEdit }: { characterId?: s
             })}
           </div>
           <div className="ds-actions">
-            <Btn tone="white" onClick={doUndo} disabled={!undo.length} aria-label="Undo">↶<span className="ds-hide-sm">Undo</span></Btn>
             <Btn tone="sky" onClick={doReset} aria-label="Reset to usual outfit">⟲<span className="ds-hide-sm">Reset</span></Btn>
             {p && <Btn tone="berry" onClick={saveLook} aria-label="Save this look">♥<span className="ds-hide-sm">Save look</span></Btn>}
           </div>
@@ -131,10 +152,11 @@ export function DressUpStudio({ characterId, onBack, onEdit }: { characterId?: s
         {/* the wardrobe */}
         <section className="ds-panel" aria-label="Wardrobe">
           {p ? <>
-            <div className="ds-tabs" role="tablist">
+            <div className="ds-tabs" role="tablist" aria-label="Clothes">
               {TABS.map((t) => (
-                <button key={t.id} role="tab" aria-selected={tab === t.id} className={`ds-tab ${tab === t.id ? 'on' : ''}`} onClick={() => { sfx('tap'); setTab(t.id); }}>
-                  <span className="ds-tab-icon" aria-hidden>{t.icon}</span><span className="ds-tab-label">{t.label}</span>
+                <button key={t.id} role="tab" aria-selected={tab === t.id} aria-label={t.label} title={t.label} className={`ds-tab ${tab === t.id ? 'on' : ''}`} onClick={() => openTab(t.id)}>
+                  <span className="ds-tab-icon" aria-hidden>{t.icon}</span>
+                  {!seen.has(t.id) && tab !== t.id && <span className="ds-new-dot" aria-hidden />}
                 </button>
               ))}
             </div>
@@ -279,3 +301,65 @@ function Fit({ aspect, children }: { aspect: number; children: ReactNode }) {
     </div>
   );
 }
+
+/* ── Fitting room pieces (original CareerTown art) ─────── */
+
+/** Curtain arch, spotlight and a round podium the character stands on. */
+function FittingRoom() {
+  return (
+    <svg className="ds-fitting-art" viewBox="0 0 400 600" preserveAspectRatio="xMidYMax slice" aria-hidden>
+      <defs>
+        <radialGradient id="dsSpot" cx=".5" cy=".35" r=".6"><stop offset="0" stopColor="#FFFFFF" stopOpacity=".95" /><stop offset="1" stopColor="#FFFFFF" stopOpacity="0" /></radialGradient>
+      </defs>
+      {/* arch window with soft spotlight */}
+      <path d="M70 500V170a130 130 0 0 1 260 0v330z" fill="#FFF7EC" stroke="#2B2350" strokeWidth="6" />
+      <ellipse cx="200" cy="250" rx="150" ry="220" fill="url(#dsSpot)" />
+      {/* curtains tied back on both sides */}
+      <path d="M70 175a130 130 0 0 1 60 -100c-6 90 8 190 40 250c-40 30-70 100-100 175z" fill="#FF8FB8" stroke="#2B2350" strokeWidth="5" strokeLinejoin="round" />
+      <path d="M330 175a130 130 0 0 0 -60 -100c6 90 -8 190 -40 250c40 30 70 100 100 175z" fill="#FF8FB8" stroke="#2B2350" strokeWidth="5" strokeLinejoin="round" />
+      <path d="M95 140c4 70 18 130 40 180M305 140c-4 70 -18 130 -40 180" fill="none" stroke="#E86A9A" strokeWidth="4" strokeLinecap="round" />
+      <rect x="150" y="318" width="28" height="16" rx="8" fill="#FFC93C" stroke="#2B2350" strokeWidth="3" transform="rotate(-20 164 326)" />
+      <rect x="222" y="318" width="28" height="16" rx="8" fill="#FFC93C" stroke="#2B2350" strokeWidth="3" transform="rotate(20 236 326)" />
+      {/* little lights along the arch */}
+      {Array.from({ length: 9 }, (_, i) => {
+        const a = Math.PI * (1 - i / 8);
+        return <circle key={i} cx={200 + 130 * Math.cos(a)} cy={170 - 130 * Math.sin(a)} r="7" fill="#FFE58A" stroke="#2B2350" strokeWidth="2.5" />;
+      })}
+    </svg>
+  );
+}
+
+/** The round stand the character stands on (its top is where their feet go). */
+function Podium() {
+  return (
+    <svg className="ds-podium" viewBox="0 0 400 90" aria-hidden>
+      <ellipse cx="200" cy="62" rx="196" ry="26" fill="#2B2350" />
+      <path d="M8 36v22a192 30 0 0 0 384 0v-22z" fill="#A98BFF" stroke="#2B2350" strokeWidth="5" />
+      <ellipse cx="200" cy="36" rx="192" ry="32" fill="#C9B5FF" stroke="#2B2350" strokeWidth="5" />
+      <ellipse cx="200" cy="36" rx="150" ry="22" fill="none" stroke="#FFFFFF" strokeWidth="4" strokeDasharray="10 10" opacity=".8" />
+    </svg>
+  );
+}
+
+function BackArrow() {
+  return <svg viewBox="0 0 40 40" aria-hidden><path d="M24 9L12 20l12 11" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" /><path d="M13 20h16" stroke="#fff" strokeWidth="6" strokeLinecap="round" /></svg>;
+}
+function UndoArrow({ flip = false }: { flip?: boolean }) {
+  return (
+    <svg viewBox="0 0 40 40" aria-hidden style={flip ? { transform: 'scaleX(-1)' } : undefined}>
+      <path d="M14 13h11a8 8 0 0 1 0 16H15" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" />
+      <path d="M18 7l-7 6 7 6" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* Which tabs this player has opened (a per-device nicety for the "new" dots). */
+const SEEN_KEY = 'careertown:studio-seen-tabs';
+function loadSeenTabs(): Set<Tab> {
+  // Hair is where the Studio opens, so it never needs a dot.
+  try { const v = JSON.parse(localStorage.getItem(SEEN_KEY) ?? '[]'); return new Set<Tab>(['hair', ...(Array.isArray(v) ? v : [])]); } catch { return new Set<Tab>(['hair']); }
+}
+function saveSeenTabs(s: Set<Tab>) {
+  try { localStorage.setItem(SEEN_KEY, JSON.stringify([...s])); } catch { /* private mode: dots just come back */ }
+}
+

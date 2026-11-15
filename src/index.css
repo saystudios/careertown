@@ -695,3 +695,55 @@ body {
 @media (prefers-contrast: more) {
   .app::after { display: none; }
 }
+
+/* ── Dress-Up Studio: fitting stage, round tiles, icon tabs (Nov 2026) ── */
+.ds { background: radial-gradient(circle at 25% 15%, #FFF7EC 0, #FFE9D6 45%, #F4DDF6 100%); }
+.ds-round-back { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; padding: 0; background: #FF8A3D;
+  border: 4px solid #fff; box-shadow: 0 0 0 3px #2B2350, 0 5px 0 3px #2B2350; flex: 0 0 auto; }
+.ds-round-back svg { width: 60%; height: 60%; }
+.ds-round-back:active { transform: translateY(3px); box-shadow: 0 0 0 3px #2B2350, 0 2px 0 3px #2B2350; }
+
+/* the fitting stage */
+.ds-fitting { background: linear-gradient(180deg, #D9CCFF 0%, #EADFFF 62%, #F7D4E6 62%, #F7D4E6 100%); }
+.ds-fitting .ds-floor { display: none; }
+.ds-fitting-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ds-fitting { container-type: size; }
+.ds-fitting { --pw: min(88cqw, 86cqh); }
+.ds-podium { position: absolute; left: 50%; bottom: 2%; width: var(--pw); height: auto; transform: translateX(-50%); z-index: 0; }
+/* the podium is --pw wide and 90/400 as tall; its top surface is 36/90 down, so feet go there */
+.ds-fitting .ds-fit { z-index: 1; bottom: calc(2cqh + var(--pw) * 54 / 400 - 6px); }
+.ds-undo-row { display: flex; gap: 16px; justify-content: center; margin-top: -2px; }
+.ds-round { width: 54px; height: 54px; border-radius: 50%; padding: 0; display: grid; place-items: center; border: 4px solid #fff;
+  box-shadow: 0 0 0 3px #2B2350, 0 4px 0 3px #2B2350; }
+.ds-round svg { width: 64%; height: 64%; }
+.ds-undo { background: #5B6CFF; }
+.ds-redo { background: #8E9BFF; }
+.ds-round:disabled { opacity: .45; }
+.ds-round:not(:disabled):active { transform: translateY(3px); box-shadow: 0 0 0 3px #2B2350, 0 1px 0 3px #2B2350; }
+
+/* icon-only category bar with "new" dots */
+.ds-panel { background: #FFF1E4; }
+.ds-tabs { margin: 10px 10px 0; padding: 8px; gap: 8px; border-radius: 999px; background: #FFB98A; border: 3px solid #2B2350; border-bottom-width: 3px; }
+.ds-tab { position: relative; min-width: 0; min-height: 0; width: 56px; height: 56px; padding: 0; border-radius: 50%; background: #FFE3CC; box-shadow: none; border: 3px solid #2B2350; }
+.ds-tab.on { background: #FF6B4A; transform: scale(1.06); }
+.ds-tab-icon { font-size: 28px; line-height: 1; }
+.ds-tab-label { display: none; }
+.ds-new-dot { position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 50%; background: #FF2E4D; border: 2px solid #fff; }
+
+/* round clothing tiles on a soft panel */
+.ds-grid-wrap { margin: 10px; border-radius: 22px; background: #FFE3CC; border: 3px solid #2B2350; }
+.ds-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 12px; }
+.ds-tile:not(.ds-tile-tall) { border-radius: 50%; background: #FFF7EC; padding: 10px; box-shadow: 0 3px 0 #E2B48F; border: 3px solid #F1CDAE; }
+.ds-tile:not(.ds-tile-tall).on { background: #FFE58A; border-color: #2B2350; outline: 4px solid #FF6B4A; outline-offset: 1px; }
+.ds-tile:not(.ds-tile-tall) .ds-check { top: 0; right: 0; }
+.ds-tile-tall { border-radius: 24px; background: #FFF7EC; }
+
+@media (max-height: 500px) {
+  .ds-round-back { width: 46px; height: 46px; }
+  .ds-round { width: 44px; height: 44px; }
+  .ds-tab { width: 46px; height: 46px; }
+  .ds-tab-icon { font-size: 22px; }
+  .ds-tabs { padding: 5px; gap: 6px; margin: 6px 6px 0; }
+  .ds-grid-wrap { margin: 6px; }
+  .ds-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
+}
