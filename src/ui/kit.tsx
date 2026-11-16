@@ -1,4 +1,3 @@
-import { useDayPhase } from '../engine/dayPhase';
 import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { useGame, playerLevel, levelProgress } from '../engine/store';
 import { BADGES, TOPS, HATS, GLASSES, ACCESSORIES } from '../data/catalog';
@@ -124,14 +123,13 @@ export function HUD({ onPassport, onMap, onShop, onCreator, title }: { onPasspor
   const lvl = playerLevel(game.xp);
   const daily = dailyFor(game.daily.date);
   const [showDaily, setShowDaily] = useState(false);
-  const phase = useDayPhase();
   return (
     <header className="hud relative z-40 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2">
       {onMap
         ? <Btn tone="white" onClick={onMap} aria-label="Back to town" className="!px-3">🗺️<span className="hidden sm:inline ml-1">Town</span></Btn>
         : <div className="hidden sm:block font-display font-extrabold text-2xl sm:text-3xl text-ink logo-type px-1"
-            // the night town picture has its own CareerTown logo in this corner
-            style={phase === 'night' ? { visibility: 'hidden' } : undefined}>CareerTown</div>}
+            // the painted town pictures have their own CareerTown logo in this corner
+            style={{ visibility: 'hidden' }}>CareerTown</div>}
       {title && <div className="hidden sm:block font-display font-extrabold text-lg sm:text-2xl text-ink truncate">{title}</div>}
       <div className="flex-1" />
       <button onClick={() => setShowDaily(true)} className="hidden md:flex items-center gap-2 rounded-2xl border-[3px] border-ink bg-white px-3 py-1 shadow-chunkysm max-w-[300px]">
