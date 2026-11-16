@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { BUILDINGS, type BuildingDef } from '../data/buildings';
 import { useGame } from '../engine/store';
-import townArt from '../assets/town/calm-map.svg';
+import nightArt from '../assets/town/night-map.webp';
+import dayArt from '../assets/town/day-map.webp';
 import { Person, PetPic } from '../components/Person';
 import { sfx } from '../engine/sfx';
 import type { BuildingId } from '../engine/types';
 import { TOWNFOLK } from '../data/townfolk';
-import { DayNight, PhaseButton } from '../components/TownLife';
+import { PhaseButton } from '../components/TownLife';
 import { useDayPhase } from '../engine/dayPhase';
 
 /** Where each building sits in the painted town picture (px in a 1536 × 1024 image): [x, y, w, h]. */
@@ -30,8 +31,31 @@ export const SPOTS: Record<string, [number, number, number, number]> = {
   playground: [855, 832, 240, 145],
   'nature-trail': [1180, 820, 330, 180],
 };
-/** The town picture has every place's name painted on it, so we don't draw our own signs. */
-const PAINTED_LABELS = false;
+/**
+ * The town is two painted pictures with the same layout (1672 × 941): the day map (morning, day, sunset)
+ * and the night map. Each place's tap area there, [x, y, w, h],
+ * covers the building and its painted name sign, so no extra signs are drawn.
+ */
+export const NIGHT_W = 1672, NIGHT_H = 941;
+export const NIGHT_SPOTS: Record<string, [number, number, number, number]> = {
+  home: [150, 170, 215, 180],
+  school: [470, 120, 270, 230],
+  hospital: [770, 140, 300, 215],
+  courthouse: [1090, 180, 220, 180],
+  bank: [1345, 185, 200, 185],
+  engineering: [100, 370, 265, 190],
+  park: [410, 360, 340, 195],
+  'tech-lab': [790, 360, 225, 200],
+  kpop: [1045, 370, 240, 195],
+  'animal-hospital': [1325, 400, 215, 165],
+  beach: [0, 540, 300, 190],
+  shopping: [405, 560, 330, 190],
+  restaurant: [785, 580, 245, 170],
+  cafe: [1105, 590, 215, 165],
+  fishing: [370, 770, 230, 135],
+  playground: [925, 745, 300, 150],
+  'nature-trail': [1400, 690, 240, 130],
+};
 const px = (v: number, of: number) => `${(v / of) * 100}%`;
 
 export function TownMap({ onEnter, onVisit, }: { onEnter: (id: BuildingId) => void; onVisit: (id: BuildingId) => void; }) {
@@ -47,6 +71,7 @@ export function TownMap({ onEnter, onVisit, }: { onEnter: (id: BuildingId) => vo
   const walker = game.characters.find((c) => c.id === game.activeCharacterId) ?? game.characters[0];
   const pet = game.pets[0];
   const phase = useDayPhase();
+  const night = phase === 'night';
   useEffect(() => { if (phase === 'night' && !game.owned.includes('did:night')) dispatch({ type: 'OWN', id: 'did:night' }); }, [phase, game.owned, dispatch]);
 
   const movePlayer = (event: MouseEvent<HTMLDivElement>) => {
@@ -71,8 +96,9 @@ export function TownMap({ onEnter, onVisit, }: { onEnter: (id: BuildingId) => vo
     <>
     <PhaseButton phase={phase} />
     <div ref={scroller} className="map-scroll h-full w-full overflow-auto">
-      <div className="town town-full town-art calm-town relative overflow-hidden select-none" onClick={movePlayer} aria-label="Town map: tap a clear space to move your character">
-        <img src={townArt} alt="Simplified CareerTown map with 17 easy-to-find locations" draggable={false} className="absolute inset-0 w-full h-full pointer-events-none" style={{ objectFit: 'fill', filter: 'none' }} />
+      <div className={`town town-full town-art calm-town town-night relative overflow-hidden select-none`} onClick={movePlayer} aria-label="Town map: tap a clear space to move your character">
+        <img src={night ? nightArt : dayArt} alt={night ? 'CareerTown at night with 17 lit-up places' : 'CareerTown in the daytime with 17 places to visit'} draggable={false} className="absolute inset-0 w-full h-full pointer-events-none" style={{ objectFit: 'fill', filter: phase === 'sunset' ? 'saturate(1.15)' : 'none' }} />
+        {(phase === 'sunset' || phase === 'morning') && <div className={`town-glow ${phase}`} aria-hidden />}
 
         {/* walker + pet on the top sidewalk */}
         {walker && (
@@ -88,21 +114,18 @@ export function TownMap({ onEnter, onVisit, }: { onEnter: (id: BuildingId) => vo
         )}
 
         {BUILDINGS.map((b) => {
-          const sp = SPOTS[b.id]; if (!sp) return null;
+          const sp = NIGHT_SPOTS[b.id]; if (!sp) return null;   // the day and night pictures share one layout
           const [x, y, w, h] = sp;
+          const [W, H] = [NIGHT_W, NIGHT_H];
           return (
             <button key={b.id} onClick={() => tap(b)} aria-label={b.playable || TOWNFOLK[b.id] ? `Enter ${b.name}` : `${b.name}, coming soon`}
               className={`building art-building absolute ${b.playable || TOWNFOLK[b.id] ? '' : 'soon'} ${bump === b.id ? 'bump' : ''}`}
-              style={{ left: px(x, IMG_W), top: px(y, IMG_H), width: px(w, IMG_W), height: px(h, IMG_H) }}>
-              {!PAINTED_LABELS && <span className="sign absolute left-1/2 -translate-x-1/2 w-max leading-tight text-center rounded-2xl border-ink bg-white font-display font-bold text-ink shadow-chunkysm"
-                style={{ bottom: '-6%', fontSize: '1.25cqw', padding: '0.23cqw 0.7cqw', borderWidth: '0.16cqw', borderStyle: 'solid', borderRadius: '1cqw', background: '#fffaf3', whiteSpace: 'nowrap' }}>
-                {b.icon} {b.name}
-              </span>}
+              style={{ left: px(x, W), top: px(y, H), width: px(w, W), height: px(h, H) }}>
               {!b.playable && !TOWNFOLK[b.id] && <span className="absolute rounded-full border-ink bg-lilac text-white font-display font-bold rotate-6" style={{ top: '6%', right: '4%', fontSize: '1.2cqw', padding: '0 0.8cqw', borderWidth: '0.22cqw', borderStyle: 'solid' }}>Soon</span>}
             </button>
           );
         })}
-        <DayNight phase={phase} />
+
       </div>
     </div>
     </>

@@ -695,3 +695,12 @@ body {
 @media (prefers-contrast: more) {
   .app::after { display: none; }
 }
+
+/* Night town: the painted night map is 1672 × 941, so the town keeps that shape at night */
+.town-art.town-night { --tw: max(100vw, calc(100dvh * 1672 / 941)); height: calc(var(--tw) * 941 / 1672); }
+.town-art.town-night > img { filter: none; }
+.town-night .art-building:hover, .town-night .art-building:focus-visible { filter: drop-shadow(0 0 10px rgba(255, 236, 160, .9)); }
+/* warm light over the painted day map at sunrise and sunset */
+.town-glow { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; }
+.town-glow.sunset { background: linear-gradient(180deg, #FF9A6B 0%, #FFB98C 40%, #E8A3C9 100%); opacity: .55; }
+.town-glow.morning { background: linear-gradient(180deg, #FFD9B0 0%, #FFF0DC 55%, #FFFFFF 100%); opacity: .6; }
