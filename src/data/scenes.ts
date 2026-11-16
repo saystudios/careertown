@@ -30,7 +30,9 @@ export interface SceneDef {
 export const ART_WIDE = 1.6;
 
 export const SCENES: Record<SceneId, SceneDef> = {
-  'home-kitchen': { id: 'home-kitchen', label: 'Kitchen', wall: '#FFF1B8', wallPattern: 'tiles', floor: '#F7B98B', floorPattern: 'checker', horizon: 470, art: artKitchen, anchors: { window: { box: [310, 80, 510, 290], hide: true } } },
+  'home-kitchen': { id: 'home-kitchen', label: 'Kitchen', wall: '#F6D3BE', wallPattern: 'tiles', floor: '#E8A989', floorPattern: 'checker', horizon: 490, art: artKitchen,
+    // the painted kitchen has its own window, wall cupboards and counter
+    anchors: { window: { hide: true }, cupboard: { hide: true }, counter: { hide: true } } },
   'home-bedroom': { id: 'home-bedroom', label: 'Bedroom', wall: '#D9CCFF', wallPattern: 'dots', floor: '#C98F63', floorPattern: 'boards', horizon: 490, art: artBedroom, anchors: { window: { box: [400, 120, 320, 240], hide: true } } },
   'home-living': { id: 'home-living', label: 'Living room', wall: '#BFEBDD', wallPattern: 'stripes', floor: '#B98258', floorPattern: 'boards', horizon: 480, art: artLiving, anchors: { window: { box: [400, 110, 420, 260], hide: true } } },
   'home-bathroom': { id: 'home-bathroom', label: 'Bathroom', wall: '#CDEFFF', wallPattern: 'tiles', floor: '#9FD8E8', floorPattern: 'tiles', horizon: 500, art: artBathroom, anchors: { window: { box: [330, 80, 460, 310], hide: true } } },
@@ -102,7 +104,7 @@ function baseScene(id: SceneId): Entity[] {
       const table = it('table', 700, 610);
       return [
         it('window', 520, 255), it('cupboard', 800, 205), it('fridge', 115, 480), counter,
-        it('stove', 515, 480), { ...it('cookiejar', 300, 312), state: { on: counter.id } }, table,
+        it('stove', 310, 480), { ...it('cookiejar', 300, 312), state: { on: counter.id } }, table,
         it('chair', 540, 625), it('chair', 870, 625), it('door', 925, 470, { to: 'home-living' }),
         { ...it('apple', 670, 488), state: { on: table.id } }, { ...it('banana', 740, 488), state: { on: table.id } },
       ];
