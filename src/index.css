@@ -695,3 +695,8 @@ body {
 @media (prefers-contrast: more) {
   .app::after { display: none; }
 }
+
+/* Night town: the painted night map is 1672 × 941, so the town keeps that shape at night */
+.town-art.town-night { --tw: max(100vw, calc(100dvh * 1672 / 941)); height: calc(var(--tw) * 941 / 1672); }
+.town-art.town-night > img { filter: none; }
+.town-night .art-building:hover, .town-night .art-building:focus-visible { filter: drop-shadow(0 0 10px rgba(255, 236, 160, .9)); }
